@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 
 /*
  - Missing: 
@@ -99,3 +100,5 @@ class Token
             return tok == type;
         }
 };
+
+typedef std::shared_ptr<Token> pToken;
