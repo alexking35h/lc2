@@ -19,7 +19,7 @@
  - _Imaginary
 */
 
-typedef enum TokenType
+typedef enum TokenType : int
 {
     TOK_NAT,
 
@@ -82,23 +82,29 @@ typedef enum TokenType
 class Token
 {
     private:
-        TokenType type;
+        int type;
         int line;
         int position;
         std::string lexeme;
 
     public:
         Token();
-        Token(TokenType, int, int, std::string);
+        Token(int, int, int, std::string);
 
-        inline TokenType get_type() { return type; }
+        inline int get_type() { return type; }
         inline int get_line() { return line; }
         inline int get_position() { return position; }
         inline std::string get_lexeme() { return lexeme; }
 
-        inline bool operator==(const TokenType& tok) {
-            return tok == type;
+        inline bool operator==(const Token token) const
+        {
+            return type == token.type
+                && line == token.line
+                && position == token.position
+                && lexeme == token.lexeme;
+        }
+        inline bool operator!=(const Token token) const
+        {
+            return !(*this  == token);
         }
 };
-
-typedef std::shared_ptr<Token> pToken;
