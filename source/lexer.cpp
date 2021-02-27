@@ -7,9 +7,12 @@
 
 #include "lexer.h"
 
-const std::string SingleCharacterTokens = "[](){}.~?:;,";
-const std::string DoubleCharacterTokens = "-+=!&|*/%&^";
-const std::string TripleCharacterTokens = "<>";
+const std::string SingleCharacters = "[](){}.~?:;,";
+const std::string DoubleCharacters = "-+=!&|*/%&^";
+const std::string TripleCharacters = "<>";
+const std::string DigitCharacters = "1234567890";
+const std::string HexCharacters = "1234567890ABCDEFabcdef";
+const std::string AlphaCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
 const std::vector<std::string> KeywordTokens = {
     "break",
     "case",
@@ -70,22 +73,33 @@ Lexer::Lexer(const std::string& input, ErrorReporter& reporter)
 {
 }
 
-char Lexer::peek()
+bool Lexer::consume_constant()
 {
-    if((position+1) >= input.size()) return '\0';
-    return input[position+1];
-}
-
-bool Lexer::at_end()
-{
-    return position >= input.size();
-}
-
-bool Lexer::match(char c)
-{
-    if(!at_end() && input[position] == c)
+    if(input[position] == '0' && (peek_next() == 'x' || peek_next() == 'X'))
     {
         position++;
+        position++;
+        while(std::string("1234567890abcdefABCDEF").find(input[position++]) != std::string::npos);
+        return true;
+    }
+    if(std::string("1234567890").find(input[position]) != std::string::npos)
+    {
+        while(std::string("1234567890").find(input[position++]) != std::string::npos);
+        return true;
+    }
+    return false;
+}
+
+bool Lexer::consume_string_literal()
+{
+    if(input[position] == '"')
+    {
+        position++;
+        while(true)
+        {
+            if(at_end() || input[position] == '\n') throw std::string("Unterminated string literal");
+            if(input[position++] == '"') break;
+        }
         return true;
     }
     return false;
@@ -95,12 +109,12 @@ Token Lexer::get_next_token()
 {
     char current = input[position];
 
-    if(SingleCharacterTokens.find(current) != std::string::npos)
+    if(SingleCharacters.find(current) != std::string::npos)
     {
         int p = position++;
         return Token(current, line, p, input.substr(p, 1));
     }
-    if(DoubleCharacterTokens.find(current) != std::string::npos)
+    if(DoubleCharacters.find(current) != std::string::npos)
     {
         int p = position++;
         int type;
@@ -166,7 +180,7 @@ Token Lexer::get_next_token()
         }
         return Token(type, line, p, input.substr(p, position-p));
     }
-    if(TripleCharacterTokens.find(current) != std::string::npos)
+    if(TripleCharacters.find(current) != std::string::npos)
     {
         int p = position++;
         if(current == '<')
@@ -198,53 +212,31 @@ Token Lexer::get_next_token()
     } 
 
     int p = position;
-    if(current == '"')
+    if(consume_string_literal())
     {
-        position++;
-        while(!at_end() && input[position++] != '"');
-        return Token(
-            TOK_STRING_LITERAL,
-            line,
-            p,
-            input.substr(p, position-p)
-        );
+        return Token(TOK_STRING_LITERAL, line, p, input.substr(p, position-p));
     }
-    if(current == '0' && (peek() == 'x' || peek() == 'X'))
+    if(consume_constant())
     {
-        position++;
-        position++;
-        while(!at_end() && std::string("1234567890abcdefABCDEF").find(input[position++]) != std::string::npos);
-        return Token(
-            TOK_INTEGER_CONSTANT,
-            line,
-            p,
-            input.substr(p, position-p)
-        );    
-    }
-    if(std::string("1234567890").find(input[position]) != std::string::npos)
-    {
-        while(!at_end() && std::string("1234567890").find(input[position++]) != std::string::npos);
-        return Token(
-            TOK_INTEGER_CONSTANT,
-            line,
-            p,
-            input.substr(p, position-p)
-        );
+        return Token(TOK_INTEGER_CONSTANT, line, p, input.substr(p, position-p));
     }
 
-    if(std::string("qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_").find(input[position]) == std::string::npos)
+    if(AlphaCharacters.find(input[position]) != std::string::npos)
     {
-        return Token();
-        // Invalid character.
+        position++;
+        while(true)
+        {
+            if(AlphaCharacters.find(input[position]) != std::string::npos) position++;
+            else if(DigitCharacters.find(input[position]) != std::string::npos) position++;
+            else break;
+        }
     }
-
-    while(!at_end())
+    else
     {
-        int ip = ++position;
-        if(std::string("1234567890").find(input[ip]) != std::string::npos) continue;
-        if(std::string("qwertyuiopasdfghjklzxcvbnm_").find(input[ip]) != std::string::npos) continue;
-        if(std::string("QWERTYUIOPASDFGHJKLZXCVBNM").find(input[ip]) != std::string::npos) continue;
-        break;
+        std::stringstream err;
+        err << "Invalid character in input: '" << input[position] << "'";
+        position++;
+        throw err.str();
     }
 
     std::string lexeme = input.substr(p, position - p);
@@ -273,8 +265,8 @@ void Lexer::skip_whitespace_comments()
                 break;
             case '/':
             {
-                if(peek() != '/') return;
-                while(peek() != '\n') position++;
+                if(peek_next() != '/') return;
+                while(peek_next() != '\n') position++;
                 break;
             }
             default:
@@ -293,8 +285,15 @@ std::vector<Token> Lexer::get_tokens()
         skip_whitespace_comments();
 
         if(at_end()) break;
-
-        tokens.push_back(get_next_token());
+        
+        try
+        {
+            tokens.push_back(get_next_token());
+        }
+        catch (std::string errmsg)
+        {
+            error_reporter.report_error(line, errmsg);
+        }
     }
     tokens.push_back(Token(TOK_EOF, line, position, ""));
     return tokens;

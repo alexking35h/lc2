@@ -210,15 +210,20 @@ TEST(LexerSuite, Identifiers)
     EXPECT_EQ(tokens[4], Token(TOK_EOF, 0, 9, ""));
 }
 
-// TEST(LexerSuite, Errors)
-// {
-//     MockErrorReporter reporter;
+TEST(LexerSuite, Errors)
+{
+    MockErrorReporter reporter;
 
-//     EXPECT_CALL(reporter, report_error(2, "Invalid character in input: '@'"));
-//     auto tokens = Lexer("//@\n\"@\"@", reporter).get_tokens();
-//     std::vector<Token> expected = {
-//         Token(TOK_STRING_LITERAL, 1, 5, "\"@\""),
-//         Token(TOK_EOF, 2, 9, "")
-//     };
-//     EXPECT_EQ(tokens, expected);
-// }
+    EXPECT_CALL(reporter, report_error(1, "Invalid character in input: '@'"));
+    auto tokens = Lexer("//@\n\"@\"@", reporter).get_tokens();
+    std::vector<Token> expected = {
+        Token(TOK_STRING_LITERAL, 1, 4, "\"@\""),
+        Token(TOK_EOF, 1, 8, "")
+    };
+    EXPECT_EQ(tokens, expected);
+
+    EXPECT_CALL(reporter, report_error(0, "Unterminated string literal"));
+    EXPECT_CALL(reporter, report_error(1, "Unterminated string literal"));
+    tokens = Lexer("\".\n\".", reporter).get_tokens();
+    EXPECT_EQ(tokens, (std::vector<Token>){Token(TOK_EOF, 1, 5, "")});
+}

@@ -13,10 +13,27 @@ class Lexer
         int line;
         ErrorReporter& error_reporter;
 
-        char peek();
-        bool match(char);
-        bool at_end();
+        inline char peek() {
+            return position >= input.size() ? '\0' : input[position];
+        }
+        inline bool at_end() {
+            return position >= input.size();
+        }
+        inline char peek_next() {
+            return (position+1) >= input.size() ? '\0' : input[position+1];
+        }
+        inline bool match(char c)
+        {
+            if(!at_end() && peek() == c)
+            {
+                position++;
+                return true;
+            }
+            return false;
+        }
         void skip_whitespace_comments();
+        bool consume_string_literal();
+        bool consume_constant();
         Token get_next_token();
 
     public:
