@@ -1,3 +1,6 @@
+#ifndef TOKEN_H
+#define TOKEN_H
+
 #include <string>
 #include <memory>
 
@@ -108,3 +111,5 @@ class Token
             return !(*this  == token);
         }
 };
+
+#endif

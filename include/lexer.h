@@ -1,3 +1,6 @@
+#ifndef LEXER_H
+#define LEXER_H
+
 #include <vector>
 #include <istream>
 
@@ -42,3 +45,5 @@ class Lexer
         // Generate tokens from source input.
         std::vector<Token> get_tokens();
 };
+
+#endif

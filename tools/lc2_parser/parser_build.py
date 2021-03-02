@@ -18,25 +18,19 @@ Each production is a string. Terminals and non-terminals should follow this form
 
 import re
 
-Grammar = {
-    "Primary": [
-        "( Expr )",
-        "CONTSTANT"
-    ],
-    "Expr": [
-        "Primary _Expr"
-    ],
-    "_Expr": [
-        "+ Primary _Expr",
-        "- Primary _Expr",
-        "$"
-    ]
-}
-
 class NonTerminal:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.first = set()
         self.follow = set()
+    
+    @property
+    def enum(self):
+        return f'NT_{self.name}'
+    
+    @property
+    def method(self):
+        return re.sub('([a-z])([A-Z])', r'\1_\2', self.name).lower()
 
 class Production:
     def __init__(self, name, rule):
@@ -55,12 +49,12 @@ def is_terminal(name):
     return False
 
 def is_nonterminal(name):
-    return re.match('^([A-Z][a-z]+)+', name) is not None
+    return re.match('^(_?[A-Z][a-z]+)+', name) is not None
 
 class ParserBuilder:
 
     def __init__(self, grammar):
-        self._nonterminals = {n:NonTerminal() for n in grammar.keys()}
+        self._nonterminals = {n:NonTerminal(n) for n in grammar.keys()}
         self._productions = [Production(name, rule) for name in grammar for rule in grammar[name]]
         self._table = dict()
 
@@ -141,90 +135,3 @@ class ParserBuilder:
         for production in self._productions:
             for terminal in production.first:
                 self._table[production.name][terminal] = production
-
-HEADER_TEMPLATE = """
-"""
-
-class HeaderParserBuilder:
-
-    def __init__(self, pb):
-        self._pb = pb
-    
-    def build(self):
-
-
-IMPLEMENTATION_TEMPLATE = """
-typedef enum
-{{
-    {nonterminal_definitions}
-}};
-typedef enum
-{{
-    TERMINAL,
-    NONTERMINAL,
-    ACTION
-}} PeType;
-typedef struct
-{{
-    PeType type;
-    union {{int token; NonTerminal nt;}};
-}};
-{table}
-"""
-
-class ImplParserBuilder:
-
-    def __init__(self, pb):
-        self._pb = pb
-    
-    def build(self):
-        return IMPLEMENTATION_TEMPLATE.format(
-            nonterminal_definitions="lk",
-            table=self._build_table()
-        )
-    
-    def _build_table(self):
-        def token_str(t):
-            if re.match('^[A-Z]+$', t):
-                return t
-            return f"'{t}'"
-
-        def element_str(e):
-            if is_nonterminal(e):
-                return f"{{NONTERMINAL, .nt={e}}}"
-            if re.match('^[A-Z]+$', e):
-                return f"{{TERMINAL, .token={e}}}"
-            return f"{{TERMINAL, .token='{e}'}}"
-
-        def production_str(token, production):
-            return "{{ {}, {{ {} }} }}".format(
-                token_str(token),
-                ", ".join(element_str(e) for e in production.elements)
-            )
-        tbl = ""
-        for nonterminal in self._pb.nonterminals:
-            tbl += f"\n    // {nonterminal}\n    {{"
-            for production in [p for p in self._pb.productions if p.name == nonterminal]:
-                for token in production.first:
-                    tbl += "\n        " + production_str(token, production)
-            tbl += "\n    }"
-        tbl += "\n"
-
-        return "str::map<int, std::list<Pe>> table[] = \n{" + tbl + "};"
-
-builder = ImplParserBuilder(ParserBuilder(Grammar)).build()
-print(builder)
-
-    # p = ParserGenerator(Grammar)
-    # for n, nt in ParserGenerator(Grammar)._nonterminals.items():
-    #     print(f"{n}: {str(nt.first)}")
-    #     print(f"{n}: {str(nt.follow)}")
-
-    # print("-----")
-    # for prod in p._productions:
-    #     print(f"{prod.name}: {str(prod.first)}")
-
-    # for n in p._table:
-    #     print(f"{n}:")
-    #     for t in p._table[n]:
-    #         print(f"  {t}: {str(p._table[n][t])}")

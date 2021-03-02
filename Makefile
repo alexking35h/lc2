@@ -18,6 +18,9 @@ build/:
 build/test: $(TEST_OBJECTS) $(OBJECTS)
 	$(CXX) $(CXX_FLAGS_TEST) -o $@ $^
 
+build/lc2: $(OBJECTS)
+	$(CXX) $(CXX_FLAGS) -o $@ $^
+
 .PHONY: test clean
 
 test: build/test
