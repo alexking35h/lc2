@@ -17,7 +17,17 @@ int __attribute__((weak)) main()
         auto tokens = Lexer(st, er).get_tokens();
 
         Parser p;
-        p.parse(tokens);
+        try
+        {
+            p.parse(tokens);
+        }
+        catch(const ParserError& e)
+        {
+            std::cerr << "Error occurred during parsing: " << e.what() << std::endl;
+            std::cerr << "  Line number: " << e.line << std::endl;
+            std::cerr << "  Position: " << e.position << std::endl;
+        }
+        
     }
 }
 

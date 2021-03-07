@@ -16,63 +16,106 @@ Each production is a string. Terminals and non-terminals should follow this form
   * `$` - Empty production.
 """
 
+# pylint: disable=invalid-name
+
 import re
 
 class NonTerminal:
-    def __init__(self, name):
+    """Non-Terminal abstraction."""
+
+    def __init__(self, name:str):
         self.name = name
         self.first = set()
         self.follow = set()
-    
+
     @property
-    def enum(self):
-        return f'NT_{self.name}'
-    
+    def enum(self) -> str:
+        """C++ NonTerminal definition for this nonterminal."""
+        return f'NT_{self.name.upper()}'
+
+    def __str__(self) -> str:
+        return self.name
+
+class Terminal:
+    """Terminal abstraction."""
+    def __init__(self, token:str):
+        self.name = token
+
     @property
-    def method(self):
-        return re.sub('([a-z])([A-Z])', r'\1_\2', self.name).lower()
+    def cdef(self) -> str:
+        """C++ representation for this Terminal.
+
+        This is either a character (e.g., ';'), or a macro definition (e.g., EXPR).
+        """
+        return self.name if re.match('^[A-Z_]+$', self.name) else f"'{self.name}'"
+
+    def __str__(self):
+        return self.name
 
 class Production:
-    def __init__(self, name, rule):
-        self.name = name
-        self.elements = rule.split(' ')
+    """Grammar production abstraction.
+
+    Productions are defined by a name - the non-terminal that derives this production,
+    and a list of terminals/non-terminals in this production.
+    """
+    def __init__(self, name:str, rule:str, nonterminals:list[NonTerminal]):
+        self.name = nonterminals[name]
+        self.elements = []
         self.first = set()
-    
-    def __str__(self):
-        return f"{self.name}: {' '.join(self.elements)}"
 
-def is_terminal(name):
-    if re.match('^[A-Z_]+$', name):
-        return True
-    if re.match('^[^A-Za-z_]$', name):
-        return True
-    return False
+        for element in rule.split(' '):
+            if re.match('^(_?[A-Z][a-z]+)+', element):
+                self.elements.append(nonterminals[element])
+            else:
+                self.elements.append(Terminal(element))
 
-def is_nonterminal(name):
-    return re.match('^(_?[A-Z][a-z]+)+', name) is not None
+    @property
+    def method(self) -> str:
+        """C++ Parser:: callback method for this production.
 
-class ParserBuilder:
+        The callback method includes parameters for all terminals in this production.
+        """
+        method_name = re.sub('([a-z])([A-Z])', r'\1_\2', self.name.name).lower()
+        method_params = len(list(e for e in self.elements if isinstance(e, Terminal)))
+        return method_name, method_params
 
-    def __init__(self, grammar):
+    def __str__(self) -> str:
+        return f"{self.name}: {' '.join([str(e) for e in self.elements])}"
+
+class ParserTable:
+    """LL(1) Table-driven parser
+
+    This class generates the LL(1) parser table for the given grammar.
+    """
+
+    def __init__(self, grammar:dict[str,str]):
         self._nonterminals = {n:NonTerminal(n) for n in grammar.keys()}
-        self._productions = [Production(name, rule) for name in grammar for rule in grammar[name]]
+        self._productions = [Production(name, rule, self._nonterminals)
+                             for name in grammar for rule in grammar[name]]
         self._table = dict()
 
         self._build_first_sets()
         self._build_follow_sets()
         self._build_augmented_first_sets()
         self._build_table()
-    
+
     @property
-    def nonterminals(self):
-        return self._nonterminals
-    
+    def nonterminals(self) -> list[NonTerminal]:
+        """List of non-terminals in the table/grammar."""
+        return self._nonterminals.values()
+
     @property
-    def productions(self):
+    def productions(self) -> list[Production]:
+        """List of productions in the table/grammar."""
         return self._productions
-    
+
     @property
-    def table(self):
+    def table(self) -> dict[NonTerminal, dict[Terminal, Production]]:
+        """LL(1) parser table.
+
+        The table is a dictionary mapping non-terminal names to another
+        dictionary, mapping terminal symbols (the lookahead) to productions.
+        """
         return self._table
 
     def _build_first_sets(self):
@@ -83,53 +126,49 @@ class ParserBuilder:
 
             for p in self._productions:
                 for element in p.elements:
-                    if element == p.name:
+                    if element == p:
                         raise Exception("Left recursion.")
 
-                    if is_terminal(element):
-                        self._nonterminals[p.name].first.add(element)
+                    if isinstance(element, NonTerminal):
+                        p.name.first = p.name.first.union(element.first)
+                    elif isinstance(element, Terminal):
+                        p.name.first.add(element)
+
+                    if '$' not in [str(p) for p in p.name.first]:
                         break
 
-                    if is_nonterminal(element):
-                        first = self._nonterminals[element].first
-                        self._nonterminals[p.name].first = self._nonterminals[p.name].first.union(first)
-
-                        if '$' not in first:
-                            break
-    
     def _build_follow_sets(self):
         prior = list()
-        
+
         while prior != [nt.follow for nt in self._nonterminals.values()]:
             prior = [nt.follow for nt in self._nonterminals.values()]
 
             for production in self._productions:
-                nonterminal = self._nonterminals[production.name]
-                trailer = nonterminal.follow
+                trailer = production.name.follow
 
                 for element in production.elements[::-1]:
-                    if is_terminal(element):
-                        trailer = set(element)
+                    if isinstance(element, Terminal):
+                        trailer = {element}
                         continue
 
-                    nt = self._nonterminals[element]
+                    nt = element
                     nt.follow = nt.follow.union(trailer)
 
-                    if '$' in nt.first:
-                        trailer = (nt.first - set('$')).union(nt.follow)
+                    if '$' in [str(t) for t in nt.first]:
+                        trailer = {t for t in nt.first if str(t) != '$'}.union(nt.follow)
                     else:
                         trailer = nt.first
 
     def _build_augmented_first_sets(self):
         for production in self._productions:
-            if is_terminal(production.elements[0]):
-                production.first.add(production.elements[0])
+            if isinstance(production.elements[0], NonTerminal):
+                production.first = production.first.union(production.elements[0].first)
             else:
-                production.first = self._nonterminals[production.elements[0]].first
-            
-            if '$' in production.first:
-                production.first = production.first.union(self._nonterminals[production.name].follow)
-    
+                production.first.add(production.elements[0])
+
+            if '$' in [str(t) for t in production.first]:
+                production.first = production.first.union(production.name.follow)
+
     def _build_table(self):
         self._table = {p.name:dict() for p in self._productions}
         for production in self._productions:
