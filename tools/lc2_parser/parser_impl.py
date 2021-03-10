@@ -20,7 +20,7 @@ IMPLEMENTATION_TEMPLATE = """
 #include "token.h"
 #include "lexer.h"
 #include "error.h"
-#include "parser.h"
+#include "parser_base.h"
 #include "exception"
 
 // {name} LL(1) table-driven parser.
@@ -29,7 +29,7 @@ IMPLEMENTATION_TEMPLATE = """
 
 {table}
 
-Parser::ParserError(const char * errmsg, int line, int position)
+ParserError::ParserError(const char * errmsg, int line, int position)
     : std::runtime_error(errmsg)
     , line(line)
     , position(position)
@@ -46,7 +46,7 @@ Parser::ParserError(const char * errmsg, int line, int position)
 NONTERMINAL_CALL_METHOD_TEMPLATE = """
 // Call the matching non-terminal callback method for this
 // production.
-void Parser::nonterminal_call(NonTerminal nt, int terminals)
+void ParserBase::nonterminal_call(NonTerminal nt, int terminals)
 {{
     Token {token_decls};
     switch(terminals)
@@ -60,7 +60,7 @@ void Parser::nonterminal_call(NonTerminal nt, int terminals)
 """
 
 PARSE_METHOD_TEMPLATE = """
-void Parser::parse(std::vector<Token> input)
+void ParserBase::parse(std::vector<Token> input)
 {
     int c = 0;
     auto next = input.begin(), end = input.end();
@@ -74,6 +74,10 @@ void Parser::parse(std::vector<Token> input)
 
         if(focus.type == NONTERMINAL)
         {
+            if(table[focus.nt].find(next->get_type()) == table[focus.nt].end())
+            {
+                throw ParserError("Unexpected token", next->get_line(), next->get_position());
+            }
             std::list<Pe> production = table[focus.nt][next->get_type()];
 
             production.reverse();
@@ -94,7 +98,7 @@ void Parser::parse(std::vector<Token> input)
             }
             else
             {
-                std::cout << "unexpected: " << next->get_lexeme() << std::endl;
+                throw ParserError("Unexpected token", next->get_line(), next->get_position());
             }
         } else if(focus.type == ACTION)
         {
@@ -132,7 +136,7 @@ class ImplParserBuilder:
         code = ""
         for method, parameters in methods:
             parameter_list = ",".join(["Token"] * parameters)
-            code += f"void Parser::{method}({parameter_list})\n{{\n}}\n"
+            code += f"void ParserBase::{method}({parameter_list})\n{{\n}}\n"
         return code.rstrip()
 
     def _build_nonterminal_switch(self):

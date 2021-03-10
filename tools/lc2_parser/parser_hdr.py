@@ -44,7 +44,7 @@ typedef struct
     int terminals;
 }} Pe;
 
-class ParserError : public std::exception
+class ParserError : public std::runtime_error
 {{
     public:
         ParserError(const char * errmsg, int line, int position);
@@ -56,7 +56,7 @@ class ParserError : public std::exception
 //
 // Subclasses should override the production callback methods
 // to handle productions derived from the grammar.
-class Parser
+class ParserBase
 {{
     private:
         std::stack<Pe> stack;
