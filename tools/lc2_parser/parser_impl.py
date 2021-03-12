@@ -94,7 +94,7 @@ void ParserBase::parse(std::vector<Token> input)
                 next++;
             } else if (focus.token == '$')
             {
-                next++;
+                // Ignore.
             }
             else
             {
@@ -191,8 +191,9 @@ class ImplParserBuilder:
                 token.cdef,
                 ", ".join(element_str(e) for e in production.elements)
             )
+            terminals = len([e for e in production.elements if isinstance(e, parser_build.Terminal) and e.name != '$'])
             pstr += f", {{ACTION, .nt={production.name.enum},"
-            pstr += f" .terminals={len([e for e in production.elements if isinstance(e, parser_build.Terminal)])} }} }} }}"
+            pstr += f" .terminals={terminals} }} }} }}"
             return pstr
 
         tbl = ""

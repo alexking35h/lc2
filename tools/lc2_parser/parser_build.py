@@ -76,7 +76,7 @@ class Production:
         The callback method includes parameters for all terminals in this production.
         """
         method_name = re.sub('([a-z])([A-Z])', r'\1_\2', self.name.name).lower()
-        method_params = len(list(e for e in self.elements if isinstance(e, Terminal)))
+        method_params = len(list(e for e in self.elements if isinstance(e, Terminal) and e.name != '$'))
         return method_name, method_params
 
     def __str__(self) -> str:
@@ -128,13 +128,15 @@ class ParserTable:
                 for element in p.elements:
                     if element == p:
                         raise Exception("Left recursion.")
-
+                    
                     if isinstance(element, NonTerminal):
-                        p.name.first = p.name.first.union(element.first)
+                        first = element.first
                     elif isinstance(element, Terminal):
-                        p.name.first.add(element)
+                        first = {element}
+                    
+                    p.name.first = p.name.first.union(first)
 
-                    if '$' not in [str(p) for p in p.name.first]:
+                    if '$' not in [str(p) for p in first]:
                         break
 
     def _build_follow_sets(self):
@@ -167,6 +169,7 @@ class ParserTable:
                 production.first.add(production.elements[0])
 
             if '$' in [str(t) for t in production.first]:
+                production.first = {e for e in production.first if e.name != '$'}
                 production.first = production.first.union(production.name.follow)
 
     def _build_table(self):

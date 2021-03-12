@@ -11,7 +11,7 @@ GRAMMAR = {
         "TOK_INTEGER_CONSTANT"
     ],
     "Expr": [
-        "Primary _Expr"
+        "Primary _Expr TOK_EOF"
     ],
     "_Expr": [
         "+ Primary _Expr",
