@@ -5,17 +5,43 @@ Based on: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
 
 NAME = "C99"
 
+# Omissions:
+# postfix-expression:
+#  - ( type-name ) {initalizer-list ,? } (p69)
+
 GRAMMAR = {
     "Primary": [
-        "( Expr )",
-        "TOK_INTEGER_CONSTANT"
+        "TOK_IDENTIFIER",
+        "TOK_INTEGER_CONSTANT",
+        "TOK_STRING_LITERAL",
+        "( Expression )"
     ],
-    "Expr": [
-        "Primary _Expr TOK_EOF"
+    "Postfix": [
+        "Primary Postfix_End",
     ],
-    "_Expr": [
-        "+ Primary _Expr",
-        "- Primary _Expr",
+    "Postfix_End": [
+        "[ Expression ] Postfix_End",
+        "( ArgumentExpressionList ) Postfix_End",
+        ". TOK_IDENTIFIER Postfix_End",
+        "TOK_POINTER_OP TOK_IDENTIFIER Postfix_End",
+        "TOK_PLUS_PLUS Postfix_End",
+        "TOK_MINUS_MINUS Postfix_End",
         "$"
+    ],
+    "ArgumentExpressionList": [
+        # TODO: Should be assignment expression (p70)
+        "Expression ArgumentExpressionList_End",
+        "$"
+    ],
+    "ArgumentExpressionList_End": [
+        ", Expression ArgumentExpressionList_End",
+        "$"
+    ],
+    "Expression": [
+        # Temporary.
+        "Postfix"
+    ],
+    "Root": [
+        "Expression TOK_EOF"
     ]
 }

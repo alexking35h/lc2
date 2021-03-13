@@ -112,4 +112,6 @@ class Token
         }
 };
 
+std::ostream& operator<<(std::ostream&, Token);
+
 #endif

@@ -65,7 +65,7 @@ void ParserBase::parse(std::vector<Token> input)
     int c = 0;
     auto next = input.begin(), end = input.end();
 
-    stack.push(Pe{NONTERMINAL, .nt=NT_EXPR});
+    stack.push(Pe{NONTERMINAL, .nt=NT_ROOT});
 
     while(!stack.empty())
     {

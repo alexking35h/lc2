@@ -18,3 +18,26 @@ Token::Token(int type, int line, int pos, std::string lexeme)
     , lexeme(lexeme)
 {
 }
+
+std::ostream& operator<<(std::ostream& os, Token token)
+{
+    switch(token.get_type())
+    {
+        case TOK_IDENTIFIER:
+            os << std::string("IDENTIFIER");
+            break;
+        case TOK_INTEGER_CONSTANT:
+            os << "CONSTANT";
+            break;
+        case TOK_STRING_LITERAL:
+            os << "STRING";
+            break;
+        case TOK_EOF:
+            os << "EOF";
+            break;
+        default:
+            os << token.get_lexeme();
+            break;
+    };
+    return os;
+}
