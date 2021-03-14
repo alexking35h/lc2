@@ -5,6 +5,8 @@ Based on: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
 
 NAME = "C99"
 
+START = "Root"
+
 # Omissions:
 # postfix-expression:
 #  - ( type-name ) {initalizer-list ,? } (p69)

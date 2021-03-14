@@ -22,6 +22,7 @@ HEADER_TEMPLATE = """
 #include <stack>
 #include <iostream>
 #include <exception>
+#include <memory>
 
 #include "token.h"
 #include "lexer.h"
@@ -31,18 +32,27 @@ typedef enum
 {{
     {nonterminal_definitions}
 }} NonTerminal;
+
 typedef enum
 {{
     TERMINAL,
     NONTERMINAL,
     ACTION
 }} PeType;
+
 typedef struct
 {{
     PeType type;
     union {{int token; NonTerminal nt;}};
-    int terminals;
 }} Pe;
+
+struct ParseNode
+{{
+    NonTerminal type;
+    bool empty;
+    std::list<std::unique_ptr<ParseNode>> children;
+    std::list<Token> terminals;
+}};
 
 class ParserError : public std::runtime_error
 {{
@@ -53,21 +63,14 @@ class ParserError : public std::runtime_error
 }};
 
 // Parser class.
-//
-// Subclasses should override the production callback methods
-// to handle productions derived from the grammar.
-class ParserBase
+class Parser
 {{
     private:
         std::stack<Pe> stack;
-        std::stack<Token> tokenstack;
-        void nonterminal_call(NonTerminal, int);
+        std::stack<std::unique_ptr<ParseNode>> nodestack;
 
     public:
-        void parse(std::vector<Token> input);
-
-        // Production callback methods.
-        {nonterminal_methods}
+        std::unique_ptr<ParseNode> parse(std::vector<Token> input);
 }};
 #endif
 """
@@ -88,25 +91,17 @@ class HdrParserBuilder:
         """Build the header file (which must be called `parser.h`)."""
         nt_definitions = [nt.enum for nt in self._nonterminals]
 
-        # Build the set of production methods (this can include duplicates).
-        production_methods = list()
-        for production in self._productions:
-            method = f'virtual void {production.method[0]}'
-            method += f'({", ".join(["Token"] * production.method[1])});'
-            production_methods.append(method)
-
         # Build the header.
         return HEADER_TEMPLATE.format(
             name=self._name,
             timestamp=datetime.datetime.now().isoformat(),
             nonterminal_definitions = ",\n    ".join(nt_definitions),
-            nonterminal_methods = "\n        ".join(sorted(set(production_methods)))
         )
 
 def main():
     """Entrypoint."""
     parser = HdrParserBuilder(
         c99.NAME,
-        parser_build.ParserTable(c99.GRAMMAR)
+        parser_build.ParserTable(c99.GRAMMAR, c99.START)
     )
     print(parser.build())

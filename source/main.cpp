@@ -2,7 +2,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "parser_base.h"
+#include "parser.h"
 #include "lexer.h"
 #include "error.h"
 
@@ -16,7 +16,7 @@ int __attribute__((weak)) main()
         std::getline(std::cin, st);
         auto tokens = Lexer(st, er).get_tokens();
 
-        ParserBase p;
+        Parser p;
         try
         {
             p.parse(tokens);

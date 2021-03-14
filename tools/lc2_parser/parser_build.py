@@ -88,11 +88,12 @@ class ParserTable:
     This class generates the LL(1) parser table for the given grammar.
     """
 
-    def __init__(self, grammar:dict[str,str]):
+    def __init__(self, grammar:dict[str,str], start:str):
         self._nonterminals = {n:NonTerminal(n) for n in grammar.keys()}
         self._productions = [Production(name, rule, self._nonterminals)
                              for name in grammar for rule in grammar[name]]
         self._table = dict()
+        self._start = self._nonterminals[start]
 
         self._build_first_sets()
         self._build_follow_sets()
@@ -108,6 +109,11 @@ class ParserTable:
     def productions(self) -> list[Production]:
         """List of productions in the table/grammar."""
         return self._productions
+    
+    @property
+    def start(self) -> Terminal:
+        """Get start symbol."""
+        return self._start
 
     @property
     def table(self) -> dict[NonTerminal, dict[Terminal, Production]]:

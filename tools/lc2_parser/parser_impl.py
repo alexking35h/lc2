@@ -16,11 +16,12 @@ IMPLEMENTATION_TEMPLATE = """
 #include <list>
 #include <stack>
 #include <iostream>
+#include <sstream>
 
 #include "token.h"
 #include "lexer.h"
 #include "error.h"
-#include "parser_base.h"
+#include "parser.h"
 #include "exception"
 
 // {name} LL(1) table-driven parser.
@@ -36,36 +37,16 @@ ParserError::ParserError(const char * errmsg, int line, int position)
 {{
 }}
 
-{nt_methods}
-
-{nt_call_method}
-
 {parse_method}
 """
 
-NONTERMINAL_CALL_METHOD_TEMPLATE = """
-// Call the matching non-terminal callback method for this
-// production.
-void ParserBase::nonterminal_call(NonTerminal nt, int terminals)
-{{
-    Token {token_decls};
-    switch(terminals)
-    {{
-{token_init_switch}
-    }}
-    switch(nt) {{
-{nt_switch}
-    }}
-}}
-"""
-
 PARSE_METHOD_TEMPLATE = """
-void ParserBase::parse(std::vector<Token> input)
+std::unique_ptr<ParseNode> Parser::parse(std::vector<Token> input)
 {
     int c = 0;
     auto next = input.begin(), end = input.end();
 
-    stack.push(Pe{NONTERMINAL, .nt=NT_ROOT});
+    stack.push(Pe{NONTERMINAL, .nt=%s});
 
     while(!stack.empty())
     {
@@ -76,35 +57,53 @@ void ParserBase::parse(std::vector<Token> input)
         {
             if(table[focus.nt].find(next->get_type()) == table[focus.nt].end())
             {
-                throw ParserError("Unexpected token", next->get_line(), next->get_position());
+                std::stringstream err;
+                err << "Unexpected token: '" << *next << "'";
+                throw ParserError(err.str().c_str(), next->get_line(), next->get_position());
             }
             std::list<Pe> production = table[focus.nt][next->get_type()];
 
-            production.reverse();
-            for(auto pe : production)
+            if(production.size() == 0)
             {
-                stack.push(pe);
+                auto pn = new ParseNode{.type=focus.nt, .empty=true};    
+                nodestack.top()->children.push_back(std::unique_ptr<ParseNode>(pn));
+            } else {
+                auto pn = new ParseNode{.type=focus.nt, .empty=false};
+                nodestack.push(std::unique_ptr<ParseNode>(pn));
+
+                production.reverse();
+                for(auto pe : production)
+                {
+                    stack.push(pe);
+                }
             }
         } else if(focus.type == TERMINAL)
         {
             if(focus.token == next->get_type())
             {
-                tokenstack.push(*next);
-                std::cout << "consume: " << next->get_lexeme() << std::endl;
-                next++;
-            } else if (focus.token == '$')
-            {
-                // Ignore.
+                nodestack.top()->terminals.push_back(*next++);
             }
             else
             {
-                throw ParserError("Unexpected token", next->get_line(), next->get_position());
+                std::stringstream err;
+                err << "Unexpected token: '" << *next << "'";
+                throw ParserError(err.str().c_str(), next->get_line(), next->get_position());
             }
         } else if(focus.type == ACTION)
         {
-            nonterminal_call(focus.nt, focus.terminals);
+            if(nodestack.top()->type == NT_ROOT)
+            {
+                break;
+            } 
+            else 
+            {
+                auto child = std::move(nodestack.top());
+                nodestack.pop();
+                nodestack.top()->children.push_back(std::move(child));
+            }
         }
     }
+    return std::move(nodestack.top());
 }
 """
 
@@ -125,58 +124,7 @@ class ImplParserBuilder:
             name=self._name,
             timestamp=datetime.datetime.now().isoformat(),
             table=self._build_table(),
-            nt_methods = self._build_nonterminal_methods(),
-            nt_call_method = self._build_nonterminal_switch(),
-            parse_method=PARSE_METHOD_TEMPLATE
-        ).rstrip()
-
-    def _build_nonterminal_methods(self):
-        """Build the default virtual production callback methods."""
-        methods = {production.method for production in self._pb.productions}
-        code = ""
-        for method, parameters in methods:
-            parameter_list = ",".join(["Token"] * parameters)
-            code += f"void ParserBase::{method}({parameter_list})\n{{\n}}\n"
-        return code.rstrip()
-
-    def _build_nonterminal_switch(self):
-        """Build the non-terminal callback switch statement."""
-        # Tuple - non-terminal, method name, and number of arguments.
-        # This may contain duplicates, so construct a set.
-        productions = {(p.name, p.method[0], p.method[1]) for p in self._pb.productions}
-
-        max_args = max(p[2] for p in productions)
-        token_decls = ", ".join(f"t{j}" for j in range(max_args))
-
-        # First switch statement, pop tokens off the stack.
-        token_init_switch = ""
-        for i in range(max_args, 0, -1):
-            token_init_switch += "    " + f"case {i}:\n"
-            token_init_switch += "        " + f"t{i-1} = tokenstack.top();\n"
-            token_init_switch += "        " + "tokenstack.pop();\n"
-        token_init_switch += "    case 0:\n"
-        token_init_switch += "        break;"
-
-        code = ""
-
-        def add_line(indentation, line):
-            return (" " * indentation) + line + "\n"
-
-        # Second switch statement. Decide which production method to call.
-        for nt in self._pb.nonterminals:
-            code += add_line(8, f"case {nt.enum}:")
-            code += add_line(12, "switch(terminals) {")
-
-            for production in [p for p in productions if p[0] == nt]:
-                code += add_line(16, f"case {production[2]}:")
-                code += add_line(20, f"return {production[1]}(" + ", ".join(f"t{i}" for i in range(production[2])) + ");")
-
-            code += add_line(12, "}")
-
-        return NONTERMINAL_CALL_METHOD_TEMPLATE.format(
-            token_decls = token_decls,
-            token_init_switch = token_init_switch.rstrip(),
-            nt_switch = code.rstrip()
+            parse_method=PARSE_METHOD_TEMPLATE % self._pb.start.enum
         ).rstrip()
 
     def _build_table(self):
@@ -187,13 +135,15 @@ class ImplParserBuilder:
             return f"{{TERMINAL, .token={element.cdef}}}"
 
         def production_str(token, production):
+            if '$' == str(production.elements[0]):
+                return f"{{ {token.cdef}, {{ }} }}"
+
             pstr = "{{ {}, {{ {}".format(
                 token.cdef,
                 ", ".join(element_str(e) for e in production.elements)
             )
             terminals = len([e for e in production.elements if isinstance(e, parser_build.Terminal) and e.name != '$'])
-            pstr += f", {{ACTION, .nt={production.name.enum},"
-            pstr += f" .terminals={terminals} }} }} }}"
+            pstr += f", {{ACTION}} }} }}"
             return pstr
 
         tbl = ""
@@ -211,6 +161,6 @@ def main():
     """Entrypoint."""
     parser = ImplParserBuilder(
         c99.NAME,
-        parser_build.ParserTable(c99.GRAMMAR)
+        parser_build.ParserTable(c99.GRAMMAR, c99.START)
     )
     print(parser.build())
