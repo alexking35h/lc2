@@ -4,6 +4,7 @@
 #include <list>
 
 #include "token.h"
+#include "parser.h"
 
 class PrimaryExprAstNode;
 class BinaryExprAstNode;
@@ -12,6 +13,7 @@ class TertiaryExprAstNode;
 class PostfixExprAstNode;
 class AssignExprAstNode;
 class ExprAstNode;
+class AstNode;
 
 class AstVisitor
 {
@@ -23,6 +25,16 @@ class AstVisitor
         virtual void visit(PostfixExprAstNode&);
         virtual void visit(AssignExprAstNode&);
         virtual void visit(ExprAstNode&);
+};
+
+class AstBuilder
+{
+    private:
+        std::shared_ptr<ExprAstNode> postfix(const ParseNode&);
+        std::shared_ptr<ExprAstNode> expr(const ParseNode&);
+
+    public:
+        std::shared_ptr<AstNode> build(const ParseNode&);
 };
 
 class AstNode
@@ -48,18 +60,43 @@ class PrimaryExprAstNode : public ExprAstNode
         virtual void accept(AstVisitor&) override;
 };
 
+enum class PostfixType
+{
+    ARRAY, CALL, PTR, INC, DEC
+};
+
 class PostfixExprAstNode : public ExprAstNode
 {
     private:
-        Token token;
-        union {
-            std::shared_ptr<ExprAstNode> expression;
-            std::list<std::shared_ptr<ExprAstNode>> expressions;
-            Token identifier;
-        };
-        std::shared_ptr<PrimaryExprAstNode> next;
+        PostfixType type;
+        std::shared_ptr<ExprAstNode> left;
+        std::list<std::shared_ptr<ExprAstNode>> right;
+        Token identifier;
         
     public:
+        inline decltype(type) get_type() { return type; }
+        inline decltype(left) get_left() { return left; }
+        inline decltype(right) get_right() { return right; }
+        inline decltype(identifier) get_identifier() { return identifier; }
+        inline PostfixExprAstNode(
+            PostfixType type,
+            std::shared_ptr<ExprAstNode> left
+        ) : type(type)
+          , left(left) {}
+        inline PostfixExprAstNode(
+            PostfixType type,
+            std::shared_ptr<ExprAstNode> left,
+            Token identifier
+        ) : type(type)
+          , left(left)
+          , identifier(identifier) {}
+        inline PostfixExprAstNode(
+            PostfixType type,
+            std::shared_ptr<ExprAstNode> left,
+            std::initializer_list<std::shared_ptr<ExprAstNode>> right
+        ) : type(type)
+          , left(left)
+          , right(right) {}
         virtual void accept(AstVisitor&) override;
 };
 

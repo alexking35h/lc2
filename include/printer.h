@@ -9,7 +9,8 @@ class PrinterVisitor : public AstVisitor
         std::stringstream str;
         
     public:
-        std::string print(ExprAstNode&);
+        std::string print(AstNode&);
 
         virtual void visit(PrimaryExprAstNode&);
+        virtual void visit(PostfixExprAstNode&);
 };

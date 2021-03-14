@@ -23,10 +23,13 @@ int __attribute__((weak)) main()
         auto tokens = Lexer(input, er).get_tokens();
 
         Parser parser;
+        PrinterVisitor printer;
 
         try
         {
-            auto ast_root = parser.parse(tokens);
+            auto parse_root = parser.parse(tokens);
+            auto ast = AstBuilder().build(*parse_root);
+            std::cout << printer.print(*ast) << std::endl;
         }
         catch(const ParserError& e)
         {
