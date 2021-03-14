@@ -1,25 +1,32 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <memory>
 
 #include "parser.h"
 #include "lexer.h"
 #include "error.h"
+#include "ast.h"
+#include "token.h"
+#include "parser.h"
+#include "printer.h"
 
 
 int __attribute__((weak)) main()
 {
     ErrorReporter er;
+
     while(true)
     {
-        std::string st;
-        std::getline(std::cin, st);
-        auto tokens = Lexer(st, er).get_tokens();
+        std::string input;
+        std::getline(std::cin, input);
+        auto tokens = Lexer(input, er).get_tokens();
 
-        Parser p;
+        Parser parser;
+
         try
         {
-            p.parse(tokens);
+            auto ast_root = parser.parse(tokens);
         }
         catch(const ParserError& e)
         {
