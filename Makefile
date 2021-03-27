@@ -1,3 +1,5 @@
+CXX=g++
+
 CXX_FLAGS=-Iinclude -g
 CXX_FLAGS_TEST=-Iinclude -lgtest -lgtest_main -g -lgmock -lpthread
 
@@ -16,10 +18,10 @@ build/:
 	mkdir -p $@
 
 build/test: $(TEST_OBJECTS) $(OBJECTS)
-	$(CXX) $(CXX_FLAGS_TEST) -o $@ $^
+	$(CXX) -o $@ $^ $(CXX_FLAGS_TEST) 
 
 build/lc2: $(OBJECTS)
-	$(CXX) $(CXX_FLAGS) -o $@ $^
+	$(CXX) -o $@ $^ $(CXX_FLAGS) 
 
 .PHONY: test clean
 
