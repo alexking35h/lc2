@@ -8,22 +8,29 @@
 #include "ast.h"
 #include "printer.h"
 
-TEST(ParserSuite, Primary)
+void expect_ast(const char * src, const char * expected_ast)
 {
     ErrorReporter err;
-    auto tokens = Lexer("abc", err).get_tokens();
-    auto as = AstBuilder().build(*Parser().parse(tokens));
-    EXPECT_STREQ(PrinterVisitor().print(*as).c_str(), "(P IDENTIFIER)");
+    std::vector<Token> tokens = Lexer(src, err).get_tokens();
+    std::shared_ptr<AstNode> ast_root = AstBuilder().build(*Parser().parse(tokens));
+    std::string ast_str = PrinterVisitor().print(*ast_root);
+    EXPECT_STREQ(ast_str.c_str(), const_cast<char *>(expected_ast));
+}
 
-    tokens = Lexer("123", err).get_tokens();
-    as = AstBuilder().build(*Parser().parse(tokens));
-    EXPECT_STREQ(PrinterVisitor().print(*as).c_str(), "(P CONSTANT)");
+TEST(ParserSuite, Primary)
+{
+    expect_ast("abc", "(P IDENTIFIER)");
+    expect_ast("123", "(P CONSTANT)");
+    expect_ast("\"abc\"", "(P STRING)");
+    expect_ast("( 1 )", "(P CONSTANT)");
+}
 
-    tokens = Lexer("\"abc\"", err).get_tokens();
-    as = AstBuilder().build(*Parser().parse(tokens));
-    EXPECT_STREQ(PrinterVisitor().print(*as).c_str(), "(P STRING)");
-
-    tokens = Lexer("( 1 )", err).get_tokens();
-    as = AstBuilder().build(*Parser().parse(tokens));
-    EXPECT_STREQ(PrinterVisitor().print(*as).c_str(), "(P CONSTANT)");
+TEST(ParserSuite, Postfix)
+{
+    expect_ast("1 ++", "(PF ++, (P CONSTANT))");
+    expect_ast("1 --", "(PF --, (P CONSTANT))");
+    expect_ast("1 [ A ]", "(PF [], (P CONSTANT), (P IDENTIFIER))");
+    expect_ast("A ( 1 , 2 )", "(PF (), (P IDENTIFIER), (P CONSTANT), (P CONSTANT))");
+    expect_ast("1 . b", "(PF ., (P CONSTANT), IDENTIFIER)");
+    expect_ast("1 -> a", "(PF ->, (P CONSTANT), IDENTIFIER)");
 }

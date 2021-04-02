@@ -36,7 +36,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::postfix(const ParseNode& node)
                 break;
             case '.':
                 pe = std::make_shared<PostfixExprAstNode>(
-                    PostfixType::DOT, pe, right->terminals[0]
+                    PostfixType::DOT, pe, right->terminals[1]
                 );
                 right = &(*right->children[0]);
                 break;
