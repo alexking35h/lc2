@@ -39,9 +39,24 @@ GRAMMAR = {
         ", Expression ArgumentExpressionList_End",
         "$"
     ],
+    "Unary": [
+        "Postfix",
+        "TOK_PLUS_PLUS Unary",
+        "TOK_MINUS_MINUS Unary",
+        "& Cast",
+        "* Cast",
+        "+ Cast",
+        "- Cast",
+        "~ Cast",
+        "! Cast"
+    ],
+    "Cast": [
+        "Unary"
+        # TODO: handle '( type-name ) cast-expression' (p93)
+    ],
     "Expression": [
         # Temporary.
-        "Postfix"
+        "Unary"
     ],
     "Root": [
         "Expression TOK_EOF"

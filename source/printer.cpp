@@ -61,3 +61,43 @@ void PrinterVisitor::visit(PostfixExprAstNode& node)
         str << ")";
     }
 }
+
+void PrinterVisitor::visit(UnaryExprAstNode& node)
+{
+    str << "(U ";
+    if(node.type == UnaryType::INC)
+    {
+        str << "++, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::DEC)
+    {
+        str << "--, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::ADDROF) {
+        str << "&, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::DEREF) {
+        str << "*, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::PLUS) {
+        str << "+, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::MINUS) {
+        str << "-, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::COMPLEMENT) {
+        str << "~, ";
+        node.right->accept(*this);
+    }
+    if(node.type == UnaryType::NOT) {
+        str << "!, ";
+        node.right->accept(*this);
+    }
+    str <<")";
+}

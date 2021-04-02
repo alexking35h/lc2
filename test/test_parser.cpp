@@ -34,3 +34,15 @@ TEST(ParserSuite, Postfix)
     expect_ast("1 . b", "(PF ., (P CONSTANT), IDENTIFIER)");
     expect_ast("1 -> a", "(PF ->, (P CONSTANT), IDENTIFIER)");
 }
+
+TEST(ParserSuite, Unary)
+{
+    expect_ast("++ 1", "(U ++, (P CONSTANT))");
+    expect_ast("-- a", "(U --, (P IDENTIFIER))");
+    expect_ast("& a", "(U &, (P IDENTIFIER))");
+    expect_ast("* a", "(U *, (P IDENTIFIER))");
+    expect_ast("+ a", "(U +, (P IDENTIFIER))");
+    expect_ast("- a", "(U -, (P IDENTIFIER))");
+    expect_ast("~ a", "(U ~, (P IDENTIFIER))");
+    expect_ast("! a", "(U !, (P IDENTIFIER))");
+}

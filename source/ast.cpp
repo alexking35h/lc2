@@ -69,6 +69,54 @@ std::shared_ptr<ExprAstNode> AstBuilder::postfix(const ParseNode& node)
     return pe;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::unary(const ParseNode& node)
+{
+    if(node.terminals.size() == 0)
+        return expr(*node.children[0]);
+    
+    switch(node.terminals[0].get_type())
+    {
+        case TOK_PLUS_PLUS:
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::INC,
+                expr(*node.children[0]));
+        case TOK_MINUS_MINUS:
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::DEC,
+                expr(*node.children[0]));
+        case '*':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::DEREF,
+                expr(*node.children[0]));
+        case '&':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::ADDROF,
+                expr(*node.children[0]));
+        case '+':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::PLUS,
+                expr(*node.children[0]));
+        case '-':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::MINUS,
+                expr(*node.children[0]));
+        case '~':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::COMPLEMENT,
+                expr(*node.children[0]));
+        case '!':
+            return std::make_shared<UnaryExprAstNode>(
+                UnaryType::NOT,
+                expr(*node.children[0]));
+    }
+}
+
+std::shared_ptr<ExprAstNode> AstBuilder::cast(const ParseNode& node)
+{
+    if(node.terminals.size() == 0)
+        return expr(*node.children[0]);
+}
+
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
 {
     if(node.type == NT_EXPRESSION)
@@ -86,6 +134,14 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
     if(node.type == NT_POSTFIX)
     {
         return postfix(node);
+    }
+    if(node.type == NT_UNARY)
+    {
+        return unary(node);
+    }
+    if(node.type == NT_CAST)
+    {
+        return cast(node);
     }
 }
 

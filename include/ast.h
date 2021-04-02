@@ -32,7 +32,8 @@ class AstBuilder
     private:
         std::shared_ptr<ExprAstNode> expr(const ParseNode&);
         std::shared_ptr<ExprAstNode> postfix(const ParseNode&);
-
+        std::shared_ptr<ExprAstNode> unary(const ParseNode&);
+        std::shared_ptr<ExprAstNode> cast(const ParseNode&);
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
@@ -93,6 +94,26 @@ class PostfixExprAstNode : public ExprAstNode
         virtual void accept(AstVisitor&) override;
 };
 
+enum class UnaryType
+{
+    INC, DEC, ADDROF, DEREF, PLUS, MINUS, COMPLEMENT, NOT
+};
+
+class UnaryExprAstNode : public ExprAstNode
+{
+    public:
+        UnaryType type;
+        std::shared_ptr<ExprAstNode> right;
+
+    public:
+        inline UnaryExprAstNode(
+            UnaryType type,
+            std::shared_ptr<ExprAstNode> right
+        ) : type(type)
+          , right(right) {}
+        virtual void accept(AstVisitor&) override;
+};
+
 class BinaryExprAstNode : public ExprAstNode
 {
     private:
@@ -114,12 +135,6 @@ class BinaryExprAstNode : public ExprAstNode
             std::shared_ptr<ExprAstNode> right,
             Token op
         ) : left(left), right(right), op(op) {}
-        virtual void accept(AstVisitor&) override;
-};
-
-class UnaryExprAstNode : public ExprAstNode
-{
-    public:
         virtual void accept(AstVisitor&) override;
 };
 
