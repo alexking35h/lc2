@@ -1,25 +1,72 @@
 
 #include <memory>
 
+
 #include "ast.h"
 #include "parser.h"
 
 std::shared_ptr<ExprAstNode> AstBuilder::postfix(const ParseNode& node)
 {
-    if(node.children[1]->empty == true)
+    const ParseNode *left = &(*node.children[0]);
+    const ParseNode *right = &(*node.children[1]);
+    auto pe = expr(*node.children[0]);
+
+    while(right->empty == false)
     {
-        return expr(*node.children[0]);
+        auto p = right->terminals[0];
+        switch(p.get_type())
+        {
+            case TOK_PLUS_PLUS:
+                pe = std::make_shared<PostfixExprAstNode>(
+                    PostfixType::INC, pe
+                );
+                right = &(*right->children[0]);
+                break;
+            case TOK_MINUS_MINUS:
+                pe = std::make_shared<PostfixExprAstNode>(
+                    PostfixType::DEC, pe
+                );
+                right = &(*right->children[0]);
+                break;
+            case TOK_POINTER_OP:
+                pe = std::make_shared<PostfixExprAstNode>(
+                    PostfixType::PTR_OP, pe, right->terminals[1]
+                );
+                right = &(*right->children[0]);
+                break;
+            case '.':
+                pe = std::make_shared<PostfixExprAstNode>(
+                    PostfixType::DOT, pe, right->terminals[0]
+                );
+                right = &(*right->children[0]);
+                break;
+            case '[':
+                pe = std::make_shared<PostfixExprAstNode>(
+                    PostfixType::ARRAY,
+                    pe,
+                    std::list<std::shared_ptr<ExprAstNode>>{expr(*right->children[0])}
+                );
+                right = &(*right->children[1]);
+                break;
+            case '(':
+                {
+                    ParseNode& arglist = *right->children[0];
+                    std::list<std::shared_ptr<ExprAstNode>> args;
+                    if(!arglist.empty)
+                    {
+                        args.push_back(expr(*arglist.children[0]));
+                        for(ParseNode * a = &(*arglist.children[1]);a->empty == false;a = &(*a->children[1]))
+                        {
+                            args.push_back(expr(*a->children[0]));
+                        }
+                    }
+                    pe = std::make_shared<PostfixExprAstNode>(PostfixType::CALL, pe, args);
+                    right = &(*right->children[1]);
+                }
+                break;
+        }
     }
-    if(node.children[1]->terminals[0].get_type() == TOK_PLUS_PLUS)
-    {
-        return std::make_shared<PostfixExprAstNode>(
-            PostfixType::INC, expr(*node.children[0]));
-    }
-    if(node.children[1]->terminals[0].get_type() == TOK_MINUS_MINUS)
-    {
-        return std::make_shared<PostfixExprAstNode>(
-            PostfixType::DEC, expr(*node.children[0]));
-    }
+    return pe;
 }
 
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
@@ -30,6 +77,10 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
     }
     if(node.type == NT_PRIMARY)
     {
+        if(node.terminals.size() == 2 && node.terminals[0].get_type() == '(')
+        {
+            return expr(*node.children[0]);
+        }
         return std::make_shared<PrimaryExprAstNode>(node.terminals[0]);
     }
     if(node.type == NT_POSTFIX)

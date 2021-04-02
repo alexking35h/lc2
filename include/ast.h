@@ -30,8 +30,8 @@ class AstVisitor
 class AstBuilder
 {
     private:
-        std::shared_ptr<ExprAstNode> postfix(const ParseNode&);
         std::shared_ptr<ExprAstNode> expr(const ParseNode&);
+        std::shared_ptr<ExprAstNode> postfix(const ParseNode&);
 
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
@@ -49,51 +49,44 @@ class ExprAstNode : public AstNode
 
 class PrimaryExprAstNode : public ExprAstNode
 {
-    private:
+    public:
         Token token;
 
     public:
-        inline Token get_token() {
-            return token;
-        }
-        inline PrimaryExprAstNode(Token t) : token(t) {}
+        PrimaryExprAstNode(Token t) : token(t) {}
         virtual void accept(AstVisitor&) override;
 };
 
 enum class PostfixType
 {
-    ARRAY, CALL, PTR, INC, DEC
+    ARRAY, CALL, PTR_OP, INC, DEC, DOT
 };
 
 class PostfixExprAstNode : public ExprAstNode
 {
-    private:
+    public:
         PostfixType type;
         std::shared_ptr<ExprAstNode> left;
         std::list<std::shared_ptr<ExprAstNode>> right;
         Token identifier;
         
     public:
-        inline decltype(type) get_type() { return type; }
-        inline decltype(left) get_left() { return left; }
-        inline decltype(right) get_right() { return right; }
-        inline decltype(identifier) get_identifier() { return identifier; }
-        inline PostfixExprAstNode(
+        PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left
         ) : type(type)
           , left(left) {}
-        inline PostfixExprAstNode(
+        PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
             Token identifier
         ) : type(type)
           , left(left)
           , identifier(identifier) {}
-        inline PostfixExprAstNode(
+        PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
-            std::initializer_list<std::shared_ptr<ExprAstNode>> right
+            std::list<std::shared_ptr<ExprAstNode>> right
         ) : type(type)
           , left(left)
           , right(right) {}

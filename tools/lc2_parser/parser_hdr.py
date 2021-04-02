@@ -50,8 +50,8 @@ struct ParseNode
 {{
     NonTerminal type;
     bool empty;
-    std::list<std::unique_ptr<ParseNode>> children;
-    std::list<Token> terminals;
+    std::vector<std::unique_ptr<ParseNode>> children;
+    std::vector<Token> terminals;
 }};
 
 class ParserError : public std::runtime_error

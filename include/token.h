@@ -94,10 +94,10 @@ class Token
         Token();
         Token(int, int, int, std::string);
 
-        inline int get_type() { return type; }
-        inline int get_line() { return line; }
-        inline int get_position() { return position; }
-        inline std::string get_lexeme() { return lexeme; }
+        inline int get_type() const { return type; }
+        inline int get_line() const { return line; }
+        inline int get_position() const { return position; }
+        inline std::string get_lexeme() const { return lexeme; }
 
         inline bool operator==(const Token token) const
         {
