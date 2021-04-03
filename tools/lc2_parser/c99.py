@@ -67,9 +67,17 @@ GRAMMAR = {
         "% Cast Multiplicative_End",
         "$"
     ],
+    "Additive": [
+        "Multiplicative Additive_End",
+    ],
+    "Additive_End": [
+        "+ Multiplicative Additive_End",
+        "- Multiplicative Additive_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "Multiplicative"
+        "Additive"
     ],
     "Root": [
         "Expression TOK_EOF"

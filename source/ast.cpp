@@ -137,6 +137,29 @@ std::shared_ptr<ExprAstNode> AstBuilder::multiplicative(const ParseNode& node)
     return left;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::additive(const ParseNode& node)
+{
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
+    {
+        BinaryType op;
+        switch(pn->terminals[0].get_type())
+        {
+            case '+':
+                op = BinaryType::ADD;
+                break;
+            case '-':
+                op = BinaryType::SUB;
+                break;
+        }
+        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
+        pn = &(*pn->children[1]);
+    }
+    return left;
+}
+
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
 {
     switch(node.type)
@@ -157,6 +180,8 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
             return cast(node);
         case NT_MULTIPLICATIVE:
             return multiplicative(node);
+        case NT_ADDITIVE:
+            return additive(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }

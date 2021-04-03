@@ -35,6 +35,7 @@ class AstBuilder
         std::shared_ptr<ExprAstNode> unary(const ParseNode&);
         std::shared_ptr<ExprAstNode> cast(const ParseNode&);
         std::shared_ptr<ExprAstNode> multiplicative(const ParseNode&);
+        std::shared_ptr<ExprAstNode> additive(const ParseNode&);
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
@@ -117,7 +118,7 @@ class UnaryExprAstNode : public ExprAstNode
 
 enum class BinaryType
 {
-    MUL, DIV, MOD
+    MUL, DIV, MOD, ADD, SUB
 };
 
 class BinaryExprAstNode : public ExprAstNode
