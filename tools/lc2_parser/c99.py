@@ -119,7 +119,7 @@ GRAMMAR = {
         "BitwiseExclusiveOr BitwiseInclusiveOr_End"
     ],
     "BitwiseInclusiveOr_End": [
-        "| BitwiseAnd BitwiseInclusiveOr_End",
+        "| BitwiseExclusiveOr BitwiseInclusiveOr_End",
         "$"
     ],
     "Expression": [
