@@ -75,9 +75,17 @@ GRAMMAR = {
         "- Multiplicative Additive_End",
         "$"
     ],
+    "BitwiseShift": [
+        "Additive BitwiseShift_End"
+    ],
+    "BitwiseShift_End": [
+        "TOK_SHIFT_LEFT Additive BitwiseShift_End",
+        "TOK_SHIFT_RIGHT Additive BitwiseShift_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "Additive"
+        "BitwiseShift"
     ],
     "Root": [
         "Expression TOK_EOF"

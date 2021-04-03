@@ -123,6 +123,12 @@ void PrinterVisitor::visit(BinaryExprAstNode& node)
         case BinaryType::SUB:
             str << ", -, ";
             break;
+        case BinaryType::SHIFT_LEFT:
+            str << ", <<, ";
+            break;
+        case BinaryType::SHIFT_RIGHT:
+            str << ", >>, ";
+            break;
     }
     node.get_right()->accept(*this);
     str << ")";

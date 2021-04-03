@@ -160,6 +160,29 @@ std::shared_ptr<ExprAstNode> AstBuilder::additive(const ParseNode& node)
     return left;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::bitwise_shift(const ParseNode& node)
+{
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
+    {
+        BinaryType op;
+        switch(pn->terminals[0].get_type())
+        {
+            case TOK_SHIFT_LEFT:
+                op = BinaryType::SHIFT_LEFT;
+                break;
+            case TOK_SHIFT_RIGHT:
+                op = BinaryType::SHIFT_RIGHT;
+                break;
+        }
+        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
+        pn = &(*pn->children[1]);
+    }
+    return left;
+}
+
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
 {
     switch(node.type)
@@ -182,6 +205,8 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
             return multiplicative(node);
         case NT_ADDITIVE:
             return additive(node);
+        case NT_BITWISESHIFT:
+            return bitwise_shift(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }
