@@ -74,41 +74,35 @@ std::shared_ptr<ExprAstNode> AstBuilder::unary(const ParseNode& node)
     if(node.terminals.size() == 0)
         return expr(*node.children[0]);
     
+    UnaryType type;
     switch(node.terminals[0].get_type())
     {
         case TOK_PLUS_PLUS:
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::INC,
-                expr(*node.children[0]));
+            type = UnaryType::INC;
+            break;
         case TOK_MINUS_MINUS:
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::DEC,
-                expr(*node.children[0]));
+            type = UnaryType::DEC;
+            break;
         case '*':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::DEREF,
-                expr(*node.children[0]));
+            type = UnaryType::DEREF;
+            break;
         case '&':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::ADDROF,
-                expr(*node.children[0]));
+            type = UnaryType::ADDROF;
+            break;
         case '+':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::PLUS,
-                expr(*node.children[0]));
+            type = UnaryType::PLUS;
+            break;
         case '-':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::MINUS,
-                expr(*node.children[0]));
+            type = UnaryType::MINUS;
+            break;
         case '~':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::COMPLEMENT,
-                expr(*node.children[0]));
+            type = UnaryType::COMPLEMENT;
+            break;
         case '!':
-            return std::make_shared<UnaryExprAstNode>(
-                UnaryType::NOT,
-                expr(*node.children[0]));
+            type = UnaryType::NOT;
+            break;
     }
+    return std::make_shared<UnaryExprAstNode>(type, expr(*node.children[0]));
 }
 
 std::shared_ptr<ExprAstNode> AstBuilder::cast(const ParseNode& node)
@@ -117,34 +111,56 @@ std::shared_ptr<ExprAstNode> AstBuilder::cast(const ParseNode& node)
         return expr(*node.children[0]);
 }
 
-std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
+std::shared_ptr<ExprAstNode> AstBuilder::multiplicative(const ParseNode& node)
 {
-    if(node.type == NT_EXPRESSION)
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
     {
-        return expr(*node.children[0]);
-    }
-    if(node.type == NT_PRIMARY)
-    {
-        if(node.terminals.size() == 2 && node.terminals[0].get_type() == '(')
+        BinaryType op;
+        switch(pn->terminals[0].get_type())
         {
-            return expr(*node.children[0]);
+            case '*':
+                op = BinaryType::MUL;
+                break;
+            case '/':
+                op = BinaryType::DIV;
+                break;
+            case '%':
+                op = BinaryType::MOD;
+                break;
         }
-        return std::make_shared<PrimaryExprAstNode>(node.terminals[0]);
+        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
+        pn = &(*pn->children[1]);
     }
-    if(node.type == NT_POSTFIX)
-    {
-        return postfix(node);
-    }
-    if(node.type == NT_UNARY)
-    {
-        return unary(node);
-    }
-    if(node.type == NT_CAST)
-    {
-        return cast(node);
-    }
+    return left;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
+{
+    switch(node.type)
+    {
+        case NT_PRIMARY:
+            {
+                if(node.terminals.size() == 2 && node.terminals[0].get_type() == '(')
+                {
+                    return expr(*node.children[0]);
+                }
+                return std::make_shared<PrimaryExprAstNode>(node.terminals[0]);
+            }
+        case NT_POSTFIX:
+            return postfix(node);
+        case NT_UNARY:
+            return unary(node);
+        case NT_CAST:
+            return cast(node);
+        case NT_MULTIPLICATIVE:
+            return multiplicative(node);
+        case NT_EXPRESSION:
+            return expr(*node.children[0]);
+    }
+}
 std::shared_ptr<AstNode> AstBuilder::build(const ParseNode& node)
 {
     if(node.type == NT_ROOT)

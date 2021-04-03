@@ -101,3 +101,23 @@ void PrinterVisitor::visit(UnaryExprAstNode& node)
     }
     str <<")";
 }
+
+void PrinterVisitor::visit(BinaryExprAstNode& node)
+{
+    str << "(B ";
+    node.get_left()->accept(*this);
+    switch(node.get_op())
+    {
+        case BinaryType::MUL:
+            str << ", *, ";
+            break;
+        case BinaryType::DIV:
+            str << ", /, ";
+            break;
+        case BinaryType::MOD:
+            str << ", %, ";
+            break;
+    }
+    node.get_right()->accept(*this);
+    str << ")";
+}

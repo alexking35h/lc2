@@ -10,6 +10,9 @@ START = "Root"
 # Omissions:
 # postfix-expression:
 #  - ( type-name ) {initalizer-list ,? } (p69)
+# unary:
+#  - sizeof ( type-name ) (p90)
+#  - sizeof unary-expr (p90)
 
 GRAMMAR = {
     "Primary": [
@@ -40,6 +43,7 @@ GRAMMAR = {
         "$"
     ],
     "Unary": [
+        # TODO: 'sizeof ( type-name )'
         "Postfix",
         "TOK_PLUS_PLUS Unary",
         "TOK_MINUS_MINUS Unary",
@@ -48,15 +52,24 @@ GRAMMAR = {
         "+ Cast",
         "- Cast",
         "~ Cast",
-        "! Cast"
+        "! Cast",
     ],
     "Cast": [
         "Unary"
         # TODO: handle '( type-name ) cast-expression' (p93)
     ],
+    "Multiplicative": [
+        "Cast Multiplicative_End"
+    ],
+    "Multiplicative_End": [
+        "* Cast Multiplicative_End",
+        "/ Cast Multiplicative_End",
+        "% Cast Multiplicative_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "Unary"
+        "Multiplicative"
     ],
     "Root": [
         "Expression TOK_EOF"

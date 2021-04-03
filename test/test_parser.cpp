@@ -46,3 +46,10 @@ TEST(ParserSuite, Unary)
     expect_ast("~ a", "(U ~, (P IDENTIFIER))");
     expect_ast("! a", "(U !, (P IDENTIFIER))");
 }
+
+TEST(ParserSuite, Binary)
+{
+    expect_ast("1 * 2", "(B (P CONSTANT), *, (P CONSTANT))");
+    expect_ast("1 / 1", "(B (P CONSTANT), /, (P CONSTANT))");
+    expect_ast("1 % 1", "(B (P CONSTANT), %, (P CONSTANT))");
+}
