@@ -83,9 +83,19 @@ GRAMMAR = {
         "TOK_SHIFT_RIGHT Additive BitwiseShift_End",
         "$"
     ],
+    "Relational": [
+        "BitwiseShift Relational_End"
+    ],
+    "Relational_End": [
+        "< BitwiseShift Relational_End",
+        "> BitwiseShift Relational_End",
+        "TOK_GE BitwiseShift Relational_End",
+        "TOK_LE BitwiseShift Relational_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "BitwiseShift"
+        "Relational"
     ],
     "Root": [
         "Expression TOK_EOF"

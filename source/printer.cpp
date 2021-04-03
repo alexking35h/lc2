@@ -129,6 +129,20 @@ void PrinterVisitor::visit(BinaryExprAstNode& node)
         case BinaryType::SHIFT_RIGHT:
             str << ", >>, ";
             break;
+        case BinaryType::LT:
+            str << ", <, ";
+            break;
+        case BinaryType::GT:
+            str << ", >, ";
+            break;
+        case BinaryType::LE:
+            str << ", <=, ";
+            break;
+        case BinaryType::GE:
+            str << ", >=, ";
+            break;
+        
+        
     }
     node.get_right()->accept(*this);
     str << ")";
