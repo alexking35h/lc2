@@ -60,4 +60,6 @@ TEST(ParserSuite, Binary)
     expect_ast("1 > 1", "(B (P CONSTANT), >, (P CONSTANT))");
     expect_ast("1 <= 1", "(B (P CONSTANT), <=, (P CONSTANT))");
     expect_ast("1 >= 1", "(B (P CONSTANT), >=, (P CONSTANT))");
+    expect_ast("1 == 1", "(B (P CONSTANT), ==, (P CONSTANT))");
+    expect_ast("1 != 1", "(B (P CONSTANT), !=, (P CONSTANT))");
 }

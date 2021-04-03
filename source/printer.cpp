@@ -141,8 +141,12 @@ void PrinterVisitor::visit(BinaryExprAstNode& node)
         case BinaryType::GE:
             str << ", >=, ";
             break;
-        
-        
+        case BinaryType::EQ:
+            str << ", ==, ";
+            break;
+        case BinaryType::NE:
+            str << ", !=, ";
+            break;
     }
     node.get_right()->accept(*this);
     str << ")";

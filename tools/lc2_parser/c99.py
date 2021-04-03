@@ -93,9 +93,17 @@ GRAMMAR = {
         "TOK_LE BitwiseShift Relational_End",
         "$"
     ],
+    "Equality": [
+        "Relational Equality_End",
+    ],
+    "Equality_End": [
+        "TOK_EQ Relational Equality_End",
+        "TOK_NE Relational Equality_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "Relational"
+        "Equality"
     ],
     "Root": [
         "Expression TOK_EOF"

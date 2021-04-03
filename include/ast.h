@@ -38,6 +38,7 @@ class AstBuilder
         std::shared_ptr<ExprAstNode> additive(const ParseNode&);
         std::shared_ptr<ExprAstNode> bitwise_shift(const ParseNode&);
         std::shared_ptr<ExprAstNode> relational(const ParseNode&);
+        std::shared_ptr<ExprAstNode> equality(const ParseNode&);
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
@@ -120,7 +121,7 @@ class UnaryExprAstNode : public ExprAstNode
 
 enum class BinaryType
 {
-    MUL, DIV, MOD, ADD, SUB, SHIFT_LEFT, SHIFT_RIGHT, LT, GT, LE, GE
+    MUL, DIV, MOD, ADD, SUB, SHIFT_LEFT, SHIFT_RIGHT, LT, GT, LE, GE, EQ, NE
 };
 
 class BinaryExprAstNode : public ExprAstNode
