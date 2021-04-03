@@ -235,6 +235,57 @@ std::shared_ptr<ExprAstNode> AstBuilder::equality(const ParseNode& node)
     return left;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::bitwise_and(const ParseNode& node)
+{
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
+    {
+        left = std::make_shared<BinaryExprAstNode>(
+            left,
+            expr(*pn->children[0]),
+            BinaryType::BITWISE_AND
+        );
+        pn = &(*pn->children[1]);
+    }
+    return left;
+}
+
+std::shared_ptr<ExprAstNode> AstBuilder::bitwise_exclusive_or(const ParseNode& node)
+{
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
+    {
+        left = std::make_shared<BinaryExprAstNode>(
+            left,
+            expr(*pn->children[0]),
+            BinaryType::BITWISE_EXCL_OR
+        );
+        pn = &(*pn->children[1]);
+    }
+    return left;
+}
+
+std::shared_ptr<ExprAstNode> AstBuilder::bitwise_inclusive_or(const ParseNode& node)
+{
+    auto left = expr(*node.children[0]);
+    
+    ParseNode * pn = &(*node.children[1]);
+    while(pn->empty == false)
+    {
+        left = std::make_shared<BinaryExprAstNode>(
+            left,
+            expr(*pn->children[0]),
+            BinaryType::BITWISE_INCL_OR
+        );
+        pn = &(*pn->children[1]);
+    }
+    return left;
+}
+
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
 {
     switch(node.type)
@@ -263,6 +314,12 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
             return relational(node);
         case NT_EQUALITY:
             return equality(node);
+        case NT_BITWISEAND:
+            return bitwise_and(node);
+        case NT_BITWISEEXCLUSIVEOR:
+            return bitwise_exclusive_or(node);
+        case NT_BITWISEINCLUSIVEOR:
+            return bitwise_inclusive_or(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }

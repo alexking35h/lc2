@@ -147,6 +147,15 @@ void PrinterVisitor::visit(BinaryExprAstNode& node)
         case BinaryType::NE:
             str << ", !=, ";
             break;
+        case BinaryType::BITWISE_AND:
+            str << ", &, ";
+            break;
+        case BinaryType::BITWISE_EXCL_OR:
+            str << ", ^, ";
+            break;
+        case BinaryType::BITWISE_INCL_OR:
+            str << ", |, ";
+            break;
     }
     node.get_right()->accept(*this);
     str << ")";

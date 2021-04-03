@@ -101,9 +101,30 @@ GRAMMAR = {
         "TOK_NE Relational Equality_End",
         "$"
     ],
+    "BitwiseAnd": [
+        "Equality BitwiseAnd_End"
+    ],
+    "BitwiseAnd_End": [
+        "& Equality BitwiseAnd_End",
+        "$"
+    ],
+    "BitwiseExclusiveOr": [
+        "BitwiseAnd BitwiseExclusiveOr_End"
+    ],
+    "BitwiseExclusiveOr_End": [
+        "^ BitwiseAnd BitwiseExclusiveOr_End",
+        "$"
+    ],
+    "BitwiseInclusiveOr": [
+        "BitwiseExclusiveOr BitwiseInclusiveOr_End"
+    ],
+    "BitwiseInclusiveOr_End": [
+        "| BitwiseAnd BitwiseInclusiveOr_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "Equality"
+        "BitwiseInclusiveOr"
     ],
     "Root": [
         "Expression TOK_EOF"
