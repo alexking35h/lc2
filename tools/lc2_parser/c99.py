@@ -122,9 +122,23 @@ GRAMMAR = {
         "| BitwiseExclusiveOr BitwiseInclusiveOr_End",
         "$"
     ],
+    "LogicalAnd": [
+        "BitwiseInclusiveOr LogicalAnd_End"
+    ],
+    "LogicalAnd_End": [
+        "TOK_AND_OP BitwiseInclusiveOr LogicalAnd_End",
+        "$"
+    ],
+    "LogicalOr": [
+        "LogicalAnd LogicalOr_End"
+    ],
+    "LogicalOr_End": [
+        "TOK_OR_OP LogicalAnd LogicalOr_End",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "BitwiseInclusiveOr"
+        "LogicalOr"
     ],
     "Root": [
         "Expression TOK_EOF"

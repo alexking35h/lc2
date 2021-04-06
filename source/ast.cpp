@@ -1,5 +1,6 @@
 
 #include <memory>
+#include <map>
 
 
 #include "ast.h"
@@ -111,132 +112,29 @@ std::shared_ptr<ExprAstNode> AstBuilder::cast(const ParseNode& node)
         return expr(*node.children[0]);
 }
 
-std::shared_ptr<ExprAstNode> AstBuilder::multiplicative(const ParseNode& node)
+std::shared_ptr<ExprAstNode> AstBuilder::binary(const ParseNode& node)
 {
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        BinaryType op;
-        switch(pn->terminals[0].get_type())
-        {
-            case '*':
-                op = BinaryType::MUL;
-                break;
-            case '/':
-                op = BinaryType::DIV;
-                break;
-            case '%':
-                op = BinaryType::MOD;
-                break;
-        }
-        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
+    std::map<int, BinaryType> table = {
+        {'*', BinaryType::MUL},
+        {'/', BinaryType::DIV},
+        {'%', BinaryType::MOD},
+        {'+', BinaryType::ADD},
+        {'-', BinaryType::SUB},
+        {TOK_SHIFT_LEFT, BinaryType::SHIFT_LEFT},
+        {TOK_SHIFT_RIGHT, BinaryType::SHIFT_RIGHT},
+        {'<', BinaryType::LT},
+        {'>', BinaryType::GT},
+        {TOK_LE, BinaryType::LE},
+        {TOK_GE, BinaryType::GE},
+        {TOK_EQ, BinaryType::EQ},
+        {TOK_NE, BinaryType::NE},
+        {'&', BinaryType::BITWISE_AND},
+        {'^', BinaryType::BITWISE_EXCL_OR},
+        {'|', BinaryType::BITWISE_INCL_OR},
+        {TOK_AND_OP, BinaryType::LOGICAL_AND_OP},
+        {TOK_OR_OP, BinaryType::LOGICAL_OR_OP}
+    };
 
-std::shared_ptr<ExprAstNode> AstBuilder::additive(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        BinaryType op;
-        switch(pn->terminals[0].get_type())
-        {
-            case '+':
-                op = BinaryType::ADD;
-                break;
-            case '-':
-                op = BinaryType::SUB;
-                break;
-        }
-        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::bitwise_shift(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        BinaryType op;
-        switch(pn->terminals[0].get_type())
-        {
-            case TOK_SHIFT_LEFT:
-                op = BinaryType::SHIFT_LEFT;
-                break;
-            case TOK_SHIFT_RIGHT:
-                op = BinaryType::SHIFT_RIGHT;
-                break;
-        }
-        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::relational(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        BinaryType op;
-        switch(pn->terminals[0].get_type())
-        {
-            case '<':
-                op = BinaryType::LT;
-                break;
-            case '>':
-                op = BinaryType::GT;
-                break;
-            case TOK_LE:
-                op = BinaryType::LE;
-                break;
-            case TOK_GE:
-                op = BinaryType::GE;
-                break;
-        }
-        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::equality(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        BinaryType op;
-        switch(pn->terminals[0].get_type())
-        {
-            case TOK_EQ:
-                op = BinaryType::EQ;
-                break;
-            case TOK_NE:
-                op = BinaryType::NE;
-                break;
-        }
-        left = std::make_shared<BinaryExprAstNode>(left, expr(*pn->children[0]), op);
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::bitwise_and(const ParseNode& node)
-{
     auto left = expr(*node.children[0]);
     
     ParseNode * pn = &(*node.children[1]);
@@ -245,41 +143,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::bitwise_and(const ParseNode& node)
         left = std::make_shared<BinaryExprAstNode>(
             left,
             expr(*pn->children[0]),
-            BinaryType::BITWISE_AND
-        );
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::bitwise_exclusive_or(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        left = std::make_shared<BinaryExprAstNode>(
-            left,
-            expr(*pn->children[0]),
-            BinaryType::BITWISE_EXCL_OR
-        );
-        pn = &(*pn->children[1]);
-    }
-    return left;
-}
-
-std::shared_ptr<ExprAstNode> AstBuilder::bitwise_inclusive_or(const ParseNode& node)
-{
-    auto left = expr(*node.children[0]);
-    
-    ParseNode * pn = &(*node.children[1]);
-    while(pn->empty == false)
-    {
-        left = std::make_shared<BinaryExprAstNode>(
-            left,
-            expr(*pn->children[0]),
-            BinaryType::BITWISE_INCL_OR
+            table[pn->terminals[0].get_type()]
         );
         pn = &(*pn->children[1]);
     }
@@ -305,21 +169,25 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
         case NT_CAST:
             return cast(node);
         case NT_MULTIPLICATIVE:
-            return multiplicative(node);
+            return binary(node);
         case NT_ADDITIVE:
-            return additive(node);
+            return binary(node);
         case NT_BITWISESHIFT:
-            return bitwise_shift(node);
+            return binary(node);
         case NT_RELATIONAL:
-            return relational(node);
+            return binary(node);
         case NT_EQUALITY:
-            return equality(node);
+            return binary(node);
         case NT_BITWISEAND:
-            return bitwise_and(node);
+            return binary(node);
         case NT_BITWISEEXCLUSIVEOR:
-            return bitwise_exclusive_or(node);
+            return binary(node);
         case NT_BITWISEINCLUSIVEOR:
-            return bitwise_inclusive_or(node);
+            return binary(node);
+        case NT_LOGICALAND:
+            return binary(node);
+        case NT_LOGICALOR:
+            return binary(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }
