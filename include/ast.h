@@ -33,8 +33,9 @@ class AstBuilder
         std::shared_ptr<ExprAstNode> expr(const ParseNode&);
         std::shared_ptr<ExprAstNode> postfix(const ParseNode&);
         std::shared_ptr<ExprAstNode> unary(const ParseNode&);
-        std::shared_ptr<ExprAstNode> binary(const ParseNode&);
         std::shared_ptr<ExprAstNode> cast(const ParseNode&);
+        std::shared_ptr<ExprAstNode> binary(const ParseNode&);
+        std::shared_ptr<ExprAstNode> tertiary(const ParseNode&);
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
@@ -149,6 +150,16 @@ class BinaryExprAstNode : public ExprAstNode
 class TertiaryExprAstNode : public ExprAstNode
 {
     public:
+        std::shared_ptr<ExprAstNode> conditional, left, right;
+
+    public:
+        inline TertiaryExprAstNode(
+            std::shared_ptr<ExprAstNode> conditional,
+            std::shared_ptr<ExprAstNode> left,
+            std::shared_ptr<ExprAstNode> right
+        ) : conditional(conditional)
+        , left(left)
+        , right(right) {}
         virtual void accept(AstVisitor&) override;
 };
 

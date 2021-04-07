@@ -166,3 +166,14 @@ void PrinterVisitor::visit(BinaryExprAstNode& node)
     node.get_right()->accept(*this);
     str << ")";
 }
+
+void PrinterVisitor::visit(TertiaryExprAstNode& node)
+{
+    str << "(C ";
+    node.conditional->accept(*this);
+    str << ", ";
+    node.left->accept(*this);
+    str << ", ";
+    node.right->accept(*this);
+    str << ")";
+}

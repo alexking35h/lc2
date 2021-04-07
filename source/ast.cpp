@@ -150,6 +150,19 @@ std::shared_ptr<ExprAstNode> AstBuilder::binary(const ParseNode& node)
     return left;
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::tertiary(const ParseNode& node)
+{
+    if(node.children[1]->empty)
+    {
+        return expr(*node.children[0]);
+    }
+
+    return std::make_shared<TertiaryExprAstNode>(
+        expr(*node.children[0]),
+        expr(*node.children[1]->children[0]),
+        expr(*node.children[1]->children[1]));
+}
+
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
 {
     switch(node.type)
@@ -188,6 +201,8 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
             return binary(node);
         case NT_LOGICALOR:
             return binary(node);
+        case NT_CONDITIONAL:
+            return tertiary(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }

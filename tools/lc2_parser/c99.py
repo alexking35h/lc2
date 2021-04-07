@@ -136,9 +136,16 @@ GRAMMAR = {
         "TOK_OR_OP LogicalAnd LogicalOr_End",
         "$"
     ],
+    "Conditional": [
+        "LogicalOr Conditional_End"
+    ],
+    "Conditional_End": [
+        "? Expression : Conditional",
+        "$"
+    ],
     "Expression": [
         # Temporary.
-        "LogicalOr"
+        "Conditional"
     ],
     "Root": [
         "Expression TOK_EOF"

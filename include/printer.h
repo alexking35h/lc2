@@ -15,4 +15,5 @@ class PrinterVisitor : public AstVisitor
         virtual void visit(PostfixExprAstNode&);
         virtual void visit(UnaryExprAstNode&);
         virtual void visit(BinaryExprAstNode&);
+        virtual void visit(TertiaryExprAstNode&);
 };
