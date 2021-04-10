@@ -290,7 +290,7 @@ std::vector<std::shared_ptr<Token>> Lexer::get_tokens()
         {
             tokens.push_back(std::make_shared<Token>(get_next_token()));
         }
-        catch (std::string errmsg)
+        catch (std::string& errmsg)
         {
             error_reporter.report_error(line, errmsg);
         }

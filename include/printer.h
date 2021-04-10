@@ -11,9 +11,9 @@ class PrinterVisitor : public AstVisitor
     public:
         std::string print(AstNode&);
 
-        virtual void visit(PrimaryExprAstNode&);
-        virtual void visit(PostfixExprAstNode&);
-        virtual void visit(UnaryExprAstNode&);
-        virtual void visit(BinaryExprAstNode&);
-        virtual void visit(TertiaryExprAstNode&);
+        virtual void visit(PrimaryExprAstNode&) override;
+        virtual void visit(PostfixExprAstNode&) override;
+        virtual void visit(UnaryExprAstNode&) override;
+        virtual void visit(BinaryExprAstNode&) override;
+        virtual void visit(TertiaryExprAstNode&) override;
 };

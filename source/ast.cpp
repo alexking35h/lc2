@@ -61,7 +61,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::postfix(const ParseNode& node)
                             args.push_back(expr(*a->children[0]));
                         }
                     }
-                    pe = std::make_shared<PostfixExprAstNode>(PostfixType::CALL, pe, args);
+                    pe = std::make_shared<PostfixExprAstNode>(PostfixType::CALL, pe, std::move(args));
                     right = &(*right->children[1]);
                 }
                 break;

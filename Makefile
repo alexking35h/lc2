@@ -43,8 +43,8 @@ build/lc2: $(OBJECTS) $(GENERATED_OBJECTS)
 test: build/test
 	$^
 
-check:
-	cppcheck source/ --std=c++11 -Iinclude --enable=all --error-exitcode=1
+check: build/parser.h
+	cppcheck source/ --std=c++11 -Iinclude -Ibuild --enable=all --error-exitcode=1 --suppress=missingIncludeSystem
 
 clean:
 	rm -rf build

@@ -92,7 +92,7 @@ class Token
 
     public:
         Token();
-        Token(int, int, int, std::string);
+        Token(int, int, int, const std::string&);
 
         inline int get_type() const { return type; }
         inline int get_line() const { return line; }
@@ -112,6 +112,6 @@ class Token
         }
 };
 
-std::ostream& operator<<(std::ostream&, Token);
+std::ostream& operator<<(std::ostream&, const Token&);
 
 #endif

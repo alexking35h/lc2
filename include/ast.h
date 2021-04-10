@@ -89,7 +89,7 @@ class PostfixExprAstNode : public ExprAstNode
         PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
-            std::list<std::shared_ptr<ExprAstNode>> right
+            const std::list<std::shared_ptr<ExprAstNode>>&& right
         ) : type(type)
           , left(left)
           , right(right) {}

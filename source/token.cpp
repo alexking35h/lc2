@@ -11,7 +11,7 @@ Token::Token()
 {
 }
 
-Token::Token(int type, int line, int pos, std::string lexeme)
+Token::Token(int type, int line, int pos, const std::string& lexeme)
     : type(type)
     , line(line)
     , position(pos)
@@ -19,7 +19,7 @@ Token::Token(int type, int line, int pos, std::string lexeme)
 {
 }
 
-std::ostream& operator<<(std::ostream& os, Token token)
+std::ostream& operator<<(std::ostream& os, const Token& token)
 {
     switch(token.get_type())
     {
