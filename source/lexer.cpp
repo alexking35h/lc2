@@ -276,9 +276,9 @@ void Lexer::skip_whitespace_comments()
     }
 }
 
-std::vector<Token> Lexer::get_tokens()
+std::vector<std::shared_ptr<Token>> Lexer::get_tokens()
 {
-    std::vector<Token> tokens;
+    std::vector<std::shared_ptr<Token>> tokens;
     position = 0;
     while(true)
     {
@@ -288,13 +288,13 @@ std::vector<Token> Lexer::get_tokens()
         
         try
         {
-            tokens.push_back(get_next_token());
+            tokens.push_back(std::make_shared<Token>(get_next_token()));
         }
         catch (std::string errmsg)
         {
             error_reporter.report_error(line, errmsg);
         }
     }
-    tokens.push_back(Token(TOK_EOF, line, position, ""));
+    tokens.push_back(std::make_shared<Token>(Token(TOK_EOF, line, position, "")));
     return tokens;
 }

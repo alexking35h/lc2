@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <istream>
+#include <memory>
 
 #include "token.h"
 #include "error.h"
@@ -43,7 +44,7 @@ class Lexer
         Lexer(const std::string&, ErrorReporter&);
 
         // Generate tokens from source input.
-        std::vector<Token> get_tokens();
+        std::vector<std::shared_ptr<Token>> get_tokens();
 };
 
 #endif

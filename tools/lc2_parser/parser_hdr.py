@@ -51,7 +51,7 @@ struct ParseNode
     NonTerminal type;
     bool empty;
     std::vector<std::unique_ptr<ParseNode>> children;
-    std::vector<Token> terminals;
+    std::vector<std::shared_ptr<Token>> terminals;
 }};
 
 class ParserError : public std::runtime_error
@@ -70,7 +70,7 @@ class Parser
         std::stack<std::unique_ptr<ParseNode>> nodestack;
 
     public:
-        std::unique_ptr<ParseNode> parse(std::vector<Token> input);
+        std::unique_ptr<ParseNode> parse(std::vector<std::shared_ptr<Token>>& input);
 }};
 #endif
 """

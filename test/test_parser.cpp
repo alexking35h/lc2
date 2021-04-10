@@ -11,8 +11,10 @@
 void expect_ast(const char * src, const char * expected_ast)
 {
     ErrorReporter err;
-    std::vector<Token> tokens = Lexer(src, err).get_tokens();
-    std::shared_ptr<AstNode> ast_root = AstBuilder().build(*Parser().parse(tokens));
+    std::shared_ptr<AstNode> ast_root;
+    std::vector<std::shared_ptr<Token>> tokens = Lexer(src, err).get_tokens();
+    std::unique_ptr<ParseNode> parse_tree = std::move(Parser().parse(tokens));
+    ast_root = AstBuilder().build(*parse_tree);
     std::string ast_str = PrinterVisitor().print(*ast_root);
     EXPECT_STREQ(ast_str.c_str(), const_cast<char *>(expected_ast));
 }

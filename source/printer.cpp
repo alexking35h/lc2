@@ -11,7 +11,7 @@ std::string PrinterVisitor::print(AstNode& root)
 
 void PrinterVisitor::visit(PrimaryExprAstNode& node)
 {
-    str << "(P " << node.token << ")";
+    str << "(P " << *node.token << ")";
 }
 
 void PrinterVisitor::visit(PostfixExprAstNode& node)
@@ -41,13 +41,13 @@ void PrinterVisitor::visit(PostfixExprAstNode& node)
     {
         str << "->, ";
         node.left->accept(*this);
-        str << ", " << node.identifier << ")";
+        str << ", " << *node.identifier << ")";
     }
     else if(node.type == PostfixType::DOT)
     {
         str << "., ";
         node.left->accept(*this);
-        str << ", " << node.identifier << ")";
+        str << ", " << *node.identifier << ")";
     }
     else if(node.type == PostfixType::CALL)
     {

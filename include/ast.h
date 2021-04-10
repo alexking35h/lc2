@@ -53,10 +53,10 @@ class ExprAstNode : public AstNode
 class PrimaryExprAstNode : public ExprAstNode
 {
     public:
-        Token token;
+        std::shared_ptr<Token> token;
 
     public:
-        PrimaryExprAstNode(Token t) : token(t) {}
+        explicit PrimaryExprAstNode(std::shared_ptr<Token> t) : token(t) {}
         virtual void accept(AstVisitor&) override;
 };
 
@@ -71,7 +71,7 @@ class PostfixExprAstNode : public ExprAstNode
         PostfixType type;
         std::shared_ptr<ExprAstNode> left;
         std::list<std::shared_ptr<ExprAstNode>> right;
-        Token identifier;
+        std::shared_ptr<Token> identifier;
         
     public:
         PostfixExprAstNode(
@@ -82,7 +82,7 @@ class PostfixExprAstNode : public ExprAstNode
         PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
-            Token identifier
+            std::shared_ptr<Token> identifier
         ) : type(type)
           , left(left)
           , identifier(identifier) {}

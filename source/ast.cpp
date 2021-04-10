@@ -15,7 +15,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::postfix(const ParseNode& node)
     while(right->empty == false)
     {
         auto p = right->terminals[0];
-        switch(p.get_type())
+        switch(p->get_type())
         {
             case TOK_PLUS_PLUS:
                 pe = std::make_shared<PostfixExprAstNode>(
@@ -76,7 +76,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::unary(const ParseNode& node)
         return expr(*node.children[0]);
     
     UnaryType type;
-    switch(node.terminals[0].get_type())
+    switch(node.terminals[0]-> get_type())
     {
         case TOK_PLUS_PLUS:
             type = UnaryType::INC;
@@ -143,7 +143,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::binary(const ParseNode& node)
         left = std::make_shared<BinaryExprAstNode>(
             left,
             expr(*pn->children[0]),
-            table[pn->terminals[0].get_type()]
+            table[pn->terminals[0]->get_type()]
         );
         pn = &(*pn->children[1]);
     }
@@ -169,7 +169,7 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
     {
         case NT_PRIMARY:
             {
-                if(node.terminals.size() == 2 && node.terminals[0].get_type() == '(')
+                if(node.terminals.size() == 2 && node.terminals[0]->get_type() == '(')
                 {
                     return expr(*node.children[0]);
                 }

@@ -41,7 +41,7 @@ ParserError::ParserError(const char * errmsg, int line, int position)
 """
 
 PARSE_METHOD_TEMPLATE = """
-std::unique_ptr<ParseNode> Parser::parse(std::vector<Token> input)
+std::unique_ptr<ParseNode> Parser::parse(std::vector<std::shared_ptr<Token>>& input)
 {
     int c = 0;
     auto next = input.begin(), end = input.end();
@@ -55,13 +55,14 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<Token> input)
 
         if(focus.type == NONTERMINAL)
         {
-            if(table[focus.nt].find(next->get_type()) == table[focus.nt].end())
+            auto next_token = *next;
+            if(table[focus.nt].find(next_token->get_type()) == table[focus.nt].end())
             {
                 std::stringstream err;
-                err << "Unexpected token: '" << *next << "'";
-                throw ParserError(err.str().c_str(), next->get_line(), next->get_position());
+                err << "Unexpected token:. '" << *next_token << "'";
+                throw ParserError(err.str().c_str(), next_token->get_line(), next_token->get_position());
             }
-            std::list<Pe> production = table[focus.nt][next->get_type()];
+            std::list<Pe> production = table[focus.nt][next_token->get_type()];
 
             if(production.size() == 0)
             {
@@ -79,15 +80,17 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<Token> input)
             }
         } else if(focus.type == TERMINAL)
         {
-            if(focus.token == next->get_type())
+            auto next_token = *next;
+            if(focus.token == next_token->get_type())
             {
-                nodestack.top()->terminals.push_back(*next++);
+                nodestack.top()->terminals.push_back(next_token);
+                next++;
             }
             else
             {
                 std::stringstream err;
-                err << "Unexpected token: '" << *next << "'";
-                throw ParserError(err.str().c_str(), next->get_line(), next->get_position());
+                err << "Unexpected token: '" << *next_token << "'";
+                throw ParserError(err.str().c_str(), next_token->get_line(), next_token->get_position());
             }
         } else if(focus.type == ACTION)
         {

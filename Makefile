@@ -38,10 +38,13 @@ build/test: $(TEST_OBJECTS) $(GENERATED_OBJECTS) $(OBJECTS)
 build/lc2: $(OBJECTS) $(GENERATED_OBJECTS)
 	$(CXX) -o $@ $(CXX_FLAGS) $^ 
 
-.PHONY: test clean
+.PHONY: test check clean
 
 test: build/test
 	$^
+
+check:
+	cppcheck source/ --std=c++11 -Iinclude --enable=all --error-exitcode=1
 
 clean:
 	rm -rf build

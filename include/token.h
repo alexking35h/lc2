@@ -97,16 +97,16 @@ class Token
         inline int get_type() const { return type; }
         inline int get_line() const { return line; }
         inline int get_position() const { return position; }
-        inline std::string get_lexeme() const { return lexeme; }
+        inline const std::string& get_lexeme() const { return lexeme; }
 
-        inline bool operator==(const Token token) const
+        inline bool operator==(const Token& token) const
         {
             return type == token.type
                 && line == token.line
                 && position == token.position
                 && lexeme == token.lexeme;
         }
-        inline bool operator!=(const Token token) const
+        inline bool operator!=(const Token& token) const
         {
             return !(*this  == token);
         }
