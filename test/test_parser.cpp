@@ -67,5 +67,5 @@ TEST(ParserSuite, Binary)
     expect_ast("1 | 1", "(B (P CONSTANT), |, (P CONSTANT))");
     expect_ast("1 && 1", "(B (P CONSTANT), &&, (P CONSTANT))");
     expect_ast("1 || 1", "(B (P CONSTANT), ||, (P CONSTANT))");
-    expect_ast("1 ? \"abc\" : abc", "(C (P CONSTANT), (P STRING), (P IDENTIFIER))");
+    expect_ast("1 ? \"abc\" : abc", "(T (P CONSTANT), (P STRING), (P IDENTIFIER))");
 }

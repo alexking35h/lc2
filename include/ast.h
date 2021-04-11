@@ -1,5 +1,14 @@
+// Abstract Syntax Tree (AST)
+//
+// An AST is used internally to represent the source program during semantic analysis.
+//
+// This file provides class declarations for AST node types, AstBuilder class, and AstVisitor 
+// base class. AstBuilder builds an AST representation from a parse tree. AstVisitor provides
+// abstract methods for walking an AST.
+
 #ifndef AST_H_ 
 #define AST_H_ 1
+
 #include <memory>
 #include <list>
 
@@ -15,18 +24,22 @@ class AssignExprAstNode;
 class ExprAstNode;
 class AstNode;
 
+// AST visitor abstract base class.
 class AstVisitor
 {
     public:
-        virtual void visit(PrimaryExprAstNode&);
-        virtual void visit(BinaryExprAstNode&);
-        virtual void visit(UnaryExprAstNode&);
-        virtual void visit(TertiaryExprAstNode&);
-        virtual void visit(PostfixExprAstNode&);
-        virtual void visit(AssignExprAstNode&);
-        virtual void visit(ExprAstNode&);
+        virtual void visit(PrimaryExprAstNode&) = 0;
+        virtual void visit(BinaryExprAstNode&) = 0;
+        virtual void visit(UnaryExprAstNode&) = 0;
+        virtual void visit(TertiaryExprAstNode&) = 0;
+        virtual void visit(PostfixExprAstNode&) = 0;
+        virtual void visit(AssignExprAstNode&) = 0;
+        virtual void visit(ExprAstNode&) = 0;
 };
 
+// AST builder class
+//
+// This class creates an AST representation from a parse tree.
 class AstBuilder
 {
     private:
@@ -40,12 +53,15 @@ class AstBuilder
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
 
+// AST node base class.
 class AstNode
 {
     public:
         virtual void accept(AstVisitor&) = 0;
+        virtual ~AstNode();
 };
 
+// Expression node (should not be instantiated directly)
 class ExprAstNode : public AstNode
 {
 };
@@ -53,10 +69,10 @@ class ExprAstNode : public AstNode
 class PrimaryExprAstNode : public ExprAstNode
 {
     public:
-        std::shared_ptr<Token> token;
+        const std::shared_ptr<Token> token;
 
-    public:
-        explicit PrimaryExprAstNode(std::shared_ptr<Token> t) : token(t) {}
+        explicit inline PrimaryExprAstNode(std::shared_ptr<Token> t) : token(t) {}
+
         virtual void accept(AstVisitor&) override;
 };
 
@@ -68,31 +84,35 @@ enum class PostfixType
 class PostfixExprAstNode : public ExprAstNode
 {
     public:
-        PostfixType type;
-        std::shared_ptr<ExprAstNode> left;
-        std::list<std::shared_ptr<ExprAstNode>> right;
-        std::shared_ptr<Token> identifier;
+        const PostfixType type;
+        const std::shared_ptr<ExprAstNode> left;
+
+        // ExprAstNode list - for ARRAY, CALL types.
+        const std::list<std::shared_ptr<ExprAstNode>> right;
+
+        // identifier token - for PTR_OP, DOT types.
+        const std::shared_ptr<Token> identifier;
         
-    public:
-        PostfixExprAstNode(
+        inline PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left
         ) : type(type)
           , left(left) {}
-        PostfixExprAstNode(
+        inline PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
             std::shared_ptr<Token> identifier
         ) : type(type)
           , left(left)
           , identifier(identifier) {}
-        PostfixExprAstNode(
+        inline PostfixExprAstNode(
             PostfixType type,
             std::shared_ptr<ExprAstNode> left,
             const std::list<std::shared_ptr<ExprAstNode>>&& right
         ) : type(type)
           , left(left)
           , right(right) {}
+
         virtual void accept(AstVisitor&) override;
 };
 
@@ -104,18 +124,20 @@ enum class UnaryType
 class UnaryExprAstNode : public ExprAstNode
 {
     public:
-        UnaryType type;
-        std::shared_ptr<ExprAstNode> right;
+        const UnaryType type;
+        const std::shared_ptr<ExprAstNode> right;
 
-    public:
         inline UnaryExprAstNode(
             UnaryType type,
             std::shared_ptr<ExprAstNode> right
         ) : type(type)
           , right(right) {}
+
         virtual void accept(AstVisitor&) override;
 };
 
+// Binary AST node types
+// (For all binary types in the language - except assignments).
 enum class BinaryType
 {
     MUL, DIV, MOD, ADD, SUB, SHIFT_LEFT, SHIFT_RIGHT, LT, GT,
@@ -125,34 +147,27 @@ enum class BinaryType
 
 class BinaryExprAstNode : public ExprAstNode
 {
-    private:
-        std::shared_ptr<ExprAstNode> left, right;
-        BinaryType op;
-    
     public:
-        inline std::shared_ptr<ExprAstNode> get_left() {
-            return left;
-        }
-        inline std::shared_ptr<ExprAstNode> get_right() {
-            return right;
-        }
-        inline BinaryType get_op() {
-            return op;
-        }
+        const std::shared_ptr<ExprAstNode> left, right;
+        const BinaryType op;
+    
         inline BinaryExprAstNode(
             std::shared_ptr<ExprAstNode> left,
             std::shared_ptr<ExprAstNode> right,
             BinaryType op
-        ) : left(left), right(right), op(op) {}
+        ) : left(left)
+          , right(right)
+          , op(op) {}
+
         virtual void accept(AstVisitor&) override;
 };
 
+// Tertiary AST node (i.e., conditional expression).
 class TertiaryExprAstNode : public ExprAstNode
 {
     public:
-        std::shared_ptr<ExprAstNode> conditional, left, right;
+        const std::shared_ptr<ExprAstNode> conditional, left, right;
 
-    public:
         inline TertiaryExprAstNode(
             std::shared_ptr<ExprAstNode> conditional,
             std::shared_ptr<ExprAstNode> left,
@@ -160,9 +175,11 @@ class TertiaryExprAstNode : public ExprAstNode
         ) : conditional(conditional)
         , left(left)
         , right(right) {}
+
         virtual void accept(AstVisitor&) override;
 };
 
+// Assignment expressions (=, -=, *=, etc.)
 class AssignExprAstNode : public ExprAstNode
 {
     public:
