@@ -56,13 +56,13 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<std::shared_ptr<Token>>& in
         if(focus.type == NONTERMINAL)
         {
             auto next_token = *next;
-            if(table[focus.nt].find(next_token->get_type()) == table[focus.nt].end())
+            if(table[focus.nt].find(next_token->type) == table[focus.nt].end())
             {
                 std::stringstream err;
                 err << "Unexpected token:. '" << *next_token << "'";
-                throw ParserError(err.str().c_str(), next_token->get_line(), next_token->get_position());
+                throw ParserError(err.str().c_str(), next_token->line, next_token->position);
             }
-            std::list<Pe> production = table[focus.nt][next_token->get_type()];
+            std::list<Pe> production = table[focus.nt][next_token->type];
 
             if(production.size() == 0)
             {
@@ -81,7 +81,7 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<std::shared_ptr<Token>>& in
         } else if(focus.type == TERMINAL)
         {
             auto next_token = *next;
-            if(focus.token == next_token->get_type())
+            if(focus.token == next_token->type)
             {
                 nodestack.top()->terminals.push_back(next_token);
                 next++;
@@ -90,7 +90,7 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<std::shared_ptr<Token>>& in
             {
                 std::stringstream err;
                 err << "Unexpected token: '" << *next_token << "'";
-                throw ParserError(err.str().c_str(), next_token->get_line(), next_token->get_position());
+                throw ParserError(err.str().c_str(), next_token->line, next_token->position);
             }
         } else if(focus.type == ACTION)
         {

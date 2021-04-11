@@ -1,0 +1,21 @@
+# action.yml
+name: 'Build and test'
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Docker container
+        run: docker build -t local .
+      - name: Static analysis
+        run: docker run -t -v ${PWD}:/home/ local make check
+      - name: Build and test
+        run: docker run -t -v ${PWD}:/home/ local make test
+      - name: Public unit test results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: test_detail.xml

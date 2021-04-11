@@ -1,8 +1,13 @@
-#ifndef ERROR_H
-#define ERROR_H
+// Error Handling class declaration.
+
+#ifndef ERROR_H_
+#define ERROR_H_
 
 #include <string>
 
+// Error handler class.
+// 'report_error' is a virtual methods, so subclasses can implement
+// different error-handling.
 class ErrorReporter
 {
     public:

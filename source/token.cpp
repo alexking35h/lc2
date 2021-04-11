@@ -3,14 +3,6 @@
 
 #include "token.h"
 
-Token::Token()
-    : type(TOK_NAT)
-    , line(0)
-    , position(0)
-    , lexeme("")
-{
-}
-
 Token::Token(int type, int line, int pos, const std::string& lexeme)
     : type(type)
     , line(line)
@@ -21,7 +13,7 @@ Token::Token(int type, int line, int pos, const std::string& lexeme)
 
 std::ostream& operator<<(std::ostream& os, const Token& token)
 {
-    switch(token.get_type())
+    switch(token.type)
     {
         case TOK_IDENTIFIER:
             os << std::string("IDENTIFIER");
@@ -36,7 +28,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
             os << "EOF";
             break;
         default:
-            os << token.get_lexeme();
+            os << token.lexeme;
             break;
     };
     return os;

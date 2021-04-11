@@ -7,7 +7,7 @@
 // abstract methods for walking an AST.
 
 #ifndef AST_H_ 
-#define AST_H_ 1
+#define AST_H_
 
 #include <memory>
 #include <list>

@@ -1,26 +1,29 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+// Token class definitions.
+//
+// All references are with respect to the C99 specification
+// http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
+
+#ifndef TOKEN_H_
+#define TOKEN_H_
 
 #include <string>
 #include <memory>
 
-/*
- - Missing: 
- - auto
- - double
- - enum
- - extern
- - float
- - inline
- - long
- - restrict
- - sizeof
- - typedef
- - volatile
- - _Bool
- - _Complex
- - _Imaginary
-*/
+// Taken from the C99 specifictaion. Missing token types:
+//  - auto
+//  - double
+//  - enum
+//  - extern
+//  - float
+//  - inline
+//  - long
+//  - restrict
+//  - sizeof
+//  - typedef
+//  - volatile
+//  - _Bool
+//  - _Complex
+//  - _Imaginary
 
 typedef enum TokenType : int
 {
@@ -84,20 +87,13 @@ typedef enum TokenType : int
 
 class Token
 {
-    private:
-        int type;
-        int line;
-        int position;
-        std::string lexeme;
-
     public:
-        Token();
-        Token(int, int, int, const std::string&);
+        const int type;
+        const int line;
+        const int position;
+        const std::string lexeme;
 
-        inline int get_type() const { return type; }
-        inline int get_line() const { return line; }
-        inline int get_position() const { return position; }
-        inline const std::string& get_lexeme() const { return lexeme; }
+        Token(int type, int line, int position, const std::string&);
 
         inline bool operator==(const Token& token) const
         {
@@ -112,6 +108,8 @@ class Token
         }
 };
 
+// Insertion operator for Token class.
+// (Create textual representation for a token.)
 std::ostream& operator<<(std::ostream&, const Token&);
 
 #endif

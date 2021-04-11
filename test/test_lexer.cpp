@@ -1,11 +1,11 @@
 #include <iostream>
-#include "lexer.h"
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include "error.h"
-
 #include <iostream>
 #include <memory>
+
+#include "lexer.h"
+#include "error.h"
 
 class MockErrorReporter : public ErrorReporter
 {

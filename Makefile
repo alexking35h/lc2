@@ -41,7 +41,7 @@ build/lc2: $(OBJECTS) $(GENERATED_OBJECTS)
 .PHONY: test check clean
 
 test: build/test
-	$^
+	$^ --gtest_output=xml
 
 check: build/parser.h
 	cppcheck source/ --std=c++11 -Iinclude -Ibuild --enable=all --error-exitcode=1 --suppress=missingIncludeSystem
