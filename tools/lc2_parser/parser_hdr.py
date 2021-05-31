@@ -57,9 +57,13 @@ struct ParseNode
 class ParserError : public std::runtime_error
 {{
     public:
-        ParserError(const char * errmsg, int line, int position);
         int line;
         int position;
+
+        ParserError(const char * errmsg, int line, int position)
+          : std::runtime_error(errmsg)
+          , line(line)
+          , position(position) {{ }}
 }};
 
 // Parser class.

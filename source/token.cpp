@@ -16,7 +16,7 @@ std::ostream& operator<<(std::ostream& os, const Token& token)
     switch(token.type)
     {
         case TOK_IDENTIFIER:
-            os << std::string("IDENTIFIER");
+            os << "IDENTIFIER";
             break;
         case TOK_INTEGER_CONSTANT:
             os << "CONSTANT";

@@ -30,13 +30,6 @@ IMPLEMENTATION_TEMPLATE = """
 
 {table}
 
-ParserError::ParserError(const char * errmsg, int line, int position)
-    : std::runtime_error(errmsg)
-    , line(line)
-    , position(position)
-{{
-}}
-
 {parse_method}
 """
 
