@@ -67,5 +67,24 @@ TEST(ParserSuite, Binary)
     expect_ast("1 | 1", "(B (P CONSTANT), |, (P CONSTANT))");
     expect_ast("1 && 1", "(B (P CONSTANT), &&, (P CONSTANT))");
     expect_ast("1 || 1", "(B (P CONSTANT), ||, (P CONSTANT))");
+}
+
+TEST(ParserSuite, Tertiary)
+{
     expect_ast("1 ? \"abc\" : abc", "(T (P CONSTANT), (P STRING), (P IDENTIFIER))");
+}
+
+TEST(ParserSuite, Assign)
+{
+    expect_ast("1 = 1", "(A (P CONSTANT), =, (P CONSTANT))");
+    expect_ast("1 *= 1", "(A (P CONSTANT), *, (P CONSTANT))");
+    expect_ast("1 /= 1", "(A (P CONSTANT), /, (P CONSTANT))");
+    expect_ast("1 %= 1", "(A (P CONSTANT), %, (P CONSTANT))");
+    expect_ast("1 += 1", "(A (P CONSTANT), +, (P CONSTANT))");
+    expect_ast("1 -= 1", "(A (P CONSTANT), -, (P CONSTANT))");
+    expect_ast("1 <<= 1", "(A (P CONSTANT), <<, (P CONSTANT))");
+    expect_ast("1 >>= 1", "(A (P CONSTANT), >>, (P CONSTANT))");
+    expect_ast("1 &= 1", "(A (P CONSTANT), &, (P CONSTANT))");
+    expect_ast("1 ^= 1", "(A (P CONSTANT), ^, (P CONSTANT))");
+    expect_ast("1 |= 1", "(A (P CONSTANT), |, (P CONSTANT))");
 }

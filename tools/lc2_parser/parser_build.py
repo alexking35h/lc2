@@ -55,11 +55,17 @@ class Terminal:
 class Production:
     """Grammar production abstraction.
 
-    Productions are defined by a name - the non-terminal that derives this production,
-    and a list of terminals/non-terminals in this production.
+    Productions are defined by a non-terminal (head) - the symbol that derives this production,
+    and a list of terminals/non-terminals in this production (elements).
     """
-    def __init__(self, name:str, rule:str, nonterminals:list[NonTerminal]):
-        self.name = nonterminals[name]
+    def __init__(self, head_str:str, rule:str, nonterminals:list[NonTerminal]):
+        """
+        Initialize Production instance from a rule.
+
+        `nonterminals` is a dictionary containing all NonTerminal symbols used by the grammar. This should
+        include all non-terminals in `rule` and `head`.
+        """
+        self.head = nonterminals[head_str]
         self.elements = []
         self.first = set()
 
@@ -68,16 +74,6 @@ class Production:
                 self.elements.append(nonterminals[element])
             else:
                 self.elements.append(Terminal(element))
-
-    @property
-    def method(self) -> str:
-        """C++ Parser:: callback method for this production.
-
-        The callback method includes parameters for all terminals in this production.
-        """
-        method_name = re.sub('([a-z])([A-Z])', r'\1_\2', self.name.name).lower()
-        method_params = len(list(e for e in self.elements if isinstance(e, Terminal) and e.name != '$'))
-        return method_name, method_params
 
     def __str__(self) -> str:
         return f"{self.name}: {' '.join([str(e) for e in self.elements])}"
@@ -88,7 +84,7 @@ class ParserTable:
     This class generates the LL(1) parser table for the given grammar.
     """
 
-    def __init__(self, grammar:dict[str,str], start:str):
+    def __init__(self, grammar:dict[str,list[str]], start:str):
         self._nonterminals = {n:NonTerminal(n) for n in grammar.keys()}
         self._productions = [Production(name, rule, self._nonterminals)
                              for name in grammar for rule in grammar[name]]
@@ -111,7 +107,7 @@ class ParserTable:
         return self._productions
     
     @property
-    def start(self) -> Terminal:
+    def start(self) -> NonTerminal:
         """Get start symbol."""
         return self._start
 
@@ -140,7 +136,7 @@ class ParserTable:
                     elif isinstance(element, Terminal):
                         first = {element}
                     
-                    p.name.first = p.name.first.union(first)
+                    p.head.first = p.head.first.union(first)
 
                     if '$' not in [str(p) for p in first]:
                         break
@@ -152,7 +148,7 @@ class ParserTable:
             prior = [nt.follow for nt in self._nonterminals.values()]
 
             for production in self._productions:
-                trailer = production.name.follow
+                trailer = production.head.follow
 
                 for element in production.elements[::-1]:
                     if isinstance(element, Terminal):
@@ -176,10 +172,10 @@ class ParserTable:
 
             if '$' in [str(t) for t in production.first]:
                 production.first = {e for e in production.first if e.name != '$'}
-                production.first = production.first.union(production.name.follow)
+                production.first = production.first.union(production.head.follow)
 
     def _build_table(self):
-        self._table = {p.name:dict() for p in self._productions}
+        self._table = {p.head:dict() for p in self._productions}
         for production in self._productions:
             for terminal in production.first:
-                self._table[production.name][terminal] = production
+                self._table[production.head][terminal] = production

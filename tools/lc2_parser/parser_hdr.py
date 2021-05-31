@@ -37,7 +37,7 @@ typedef enum
 {{
     TERMINAL,
     NONTERMINAL,
-    ACTION
+    NONTERMINAL_END
 }} PeType;
 
 typedef struct
@@ -84,7 +84,6 @@ class HdrParserBuilder:
 
     def __init__(self, name:str, parser_builder:parser_build.ParserTable):
         self._name = name
-        self._productions = parser_builder.productions
         self._nonterminals = parser_builder.nonterminals
 
     def build(self) -> str:

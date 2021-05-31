@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "parser.h"
+#include "type.h"
 
 // Handle 'Expression' parse nodes.
 std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
@@ -39,6 +40,8 @@ std::shared_ptr<ExprAstNode> AstBuilder::expr(const ParseNode& node)
             return binary(node);
         case NT_CONDITIONAL:
             return tertiary(node);
+        case NT_ASSIGNMENT:
+            return assignment(node);
         case NT_EXPRESSION:
             return expr(*node.children[0]);
     }
@@ -213,6 +216,49 @@ std::shared_ptr<ExprAstNode> AstBuilder::tertiary(const ParseNode& node)
         expr(*node.children[1]->children[1]));
 }
 
+std::shared_ptr<ExprAstNode> AstBuilder::assignment(const ParseNode& node)
+{
+    if(node.children[1]->empty)
+    {
+        return expr(*node.children[0]);
+    }
+
+    std::map<int, AssignExprType> table = {
+        {TOK_PLUS_ASSIGN, AssignExprType::PLUS},
+        {TOK_MINUS_ASSIGN, AssignExprType::MINUS},
+        {TOK_MUL_ASSIGN, AssignExprType::MUL},
+        {TOK_DIV_ASSIGN, AssignExprType::DIV},
+        {TOK_MOD_ASSIGN, AssignExprType::MOD},
+        {TOK_XOR_ASSIGN, AssignExprType::XOR},
+        {TOK_SHIFT_LEFT_ASSIGN, AssignExprType::SHIFT_LEFT},
+        {TOK_SHIFT_RIGHT_ASSIGN, AssignExprType::SHIFT_RIGHT},
+        {TOK_AND_ASSIGN, AssignExprType::AND},
+        {TOK_OR_ASSIGN, AssignExprType::OR},
+        {'=', AssignExprType::ASSIGN}
+    };
+
+    return std::make_shared<AssignExprAstNode>(
+        expr(*node.children[0]),
+        table[node.children[1]->terminals[0]->type],
+        expr(*node.children[1]->children[0])
+    );
+}
+
+// std::shared_ptr<DeclAstNode> AstBuilder::declaration(const ParseNode& node)
+// {
+//     if(node.children[0]->empty)
+//         throw "errah";
+    
+//     std::vector<int> specifiers;
+
+//     auto * specifier = &node.children[0];
+//     while((*specifier)->empty == false)
+//     {
+//         specifiers.push_back((*specifier)->terminals[0]->type);
+//     }
+// }
+
+
 std::shared_ptr<AstNode> AstBuilder::build(const ParseNode& node)
 {
     if(node.type == NT_ROOT)
@@ -249,6 +295,11 @@ void PostfixExprAstNode::accept(AstVisitor& v)
 }
 
 void AssignExprAstNode::accept(AstVisitor& v)
+{
+    v.visit(*this);
+}
+
+void DeclAstNode::accept(AstVisitor& v)
 {
     v.visit(*this);
 }

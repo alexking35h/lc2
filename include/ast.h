@@ -23,6 +23,7 @@ class PostfixExprAstNode;
 class AssignExprAstNode;
 class ExprAstNode;
 class AstNode;
+class DeclAstNode;
 
 // AST visitor abstract base class.
 class AstVisitor
@@ -35,6 +36,7 @@ class AstVisitor
         virtual void visit(PostfixExprAstNode&) = 0;
         virtual void visit(AssignExprAstNode&) = 0;
         virtual void visit(ExprAstNode&) = 0;
+        virtual void visit(DeclAstNode&) = 0;
 };
 
 // AST builder class
@@ -49,6 +51,8 @@ class AstBuilder
         std::shared_ptr<ExprAstNode> cast(const ParseNode&);
         std::shared_ptr<ExprAstNode> binary(const ParseNode&);
         std::shared_ptr<ExprAstNode> tertiary(const ParseNode&);
+        std::shared_ptr<ExprAstNode> assignment(const ParseNode&);
+        std::shared_ptr<DeclAstNode> declaration(const ParseNode&);
     public:
         std::shared_ptr<AstNode> build(const ParseNode&);
 };
@@ -179,8 +183,31 @@ class TertiaryExprAstNode : public ExprAstNode
         virtual void accept(AstVisitor&) override;
 };
 
+enum class AssignExprType
+{
+    ASSIGN, PLUS, MINUS, MUL, DIV, MOD, XOR, AND, OR, SHIFT_LEFT, SHIFT_RIGHT
+};
+
 // Assignment expressions (=, -=, *=, etc.)
 class AssignExprAstNode : public ExprAstNode
+{
+    public:
+        const AssignExprType type;
+        const std::shared_ptr<ExprAstNode> left, right;
+
+        inline AssignExprAstNode(
+            std::shared_ptr<ExprAstNode> left,
+            AssignExprType type,
+            std::shared_ptr<ExprAstNode> right
+        ) : type(type)
+          , left(left)
+          , right(right) {}
+
+        virtual void accept(AstVisitor&) override;
+};
+
+// Declaration
+class DeclAstNode : public AstNode
 {
     public:
         virtual void accept(AstVisitor&) override;

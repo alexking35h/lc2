@@ -178,10 +178,52 @@ void PrinterVisitor::visit(PostfixExprAstNode& node)
     }
 }
 
-void PrinterVisitor::visit(AssignExprAstNode&)
+void PrinterVisitor::visit(AssignExprAstNode& node)
 {
-
+    str << "(A ";
+    node.left->accept(*this);
+    switch(node.type)
+    {
+        case AssignExprType::ASSIGN:
+            str << ", =, ";
+            break;
+        case AssignExprType::PLUS:
+            str << ", +, ";
+            break;
+        case AssignExprType::MINUS:
+            str << ", -, ";
+            break;
+        case AssignExprType::MUL:
+            str << ", *, ";
+            break;
+        case AssignExprType::DIV:
+            str << ", /, ";
+            break;
+        case AssignExprType::MOD:
+            str << ", %, ";
+            break;
+        case AssignExprType::XOR:
+            str << ", ^, ";
+            break;
+        case AssignExprType::SHIFT_LEFT:
+            str << ", <<, ";
+            break;
+        case AssignExprType::SHIFT_RIGHT:
+            str << ", >>, ";
+            break;
+        case AssignExprType::OR:
+            str << ", |, ";
+            break;
+        case AssignExprType::AND:
+            str << ", &, ";
+            break;
+    }
+    node.right->accept(*this);
+    str << ")";
 }
 
 void PrinterVisitor::visit(ExprAstNode&)
+{}
+
+void PrinterVisitor::visit(DeclAstNode&)
 {}

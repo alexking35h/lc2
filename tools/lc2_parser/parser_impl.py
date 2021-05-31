@@ -92,7 +92,7 @@ std::unique_ptr<ParseNode> Parser::parse(std::vector<std::shared_ptr<Token>>& in
                 err << "Unexpected token: '" << *next_token << "'";
                 throw ParserError(err.str().c_str(), next_token->line, next_token->position);
             }
-        } else if(focus.type == ACTION)
+        } else if(focus.type == NONTERMINAL_END)
         {
             if(nodestack.top()->type == NT_ROOT)
             {
@@ -145,14 +145,12 @@ class ImplParserBuilder:
                 token.cdef,
                 ", ".join(element_str(e) for e in production.elements)
             )
-            terminals = len([e for e in production.elements if isinstance(e, parser_build.Terminal) and e.name != '$'])
-            pstr += f", {{ACTION}} }} }}"
-            return pstr
+            return pstr + r", {NONTERMINAL_END} } }"
 
         tbl = ""
         for nonterminal in self._pb.nonterminals:
             tbl += f"\n    // {nonterminal.name}\n    {{"
-            for production in [p for p in self._pb.productions if p.name == nonterminal]:
+            for production in [p for p in self._pb.productions if p.head == nonterminal]:
                 for token in production.first:
                     tbl += "\n        " + production_str(token, production) + ","
             tbl += "\n    },"

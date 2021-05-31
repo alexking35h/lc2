@@ -26,6 +26,7 @@ class PrinterVisitor : public AstVisitor
         virtual void visit(PostfixExprAstNode&) override;
         virtual void visit(AssignExprAstNode&) override;
         virtual void visit(ExprAstNode&) override;
+        virtual void visit(DeclAstNode&) override;
 };
 
 #endif

@@ -1,6 +1,6 @@
 """ISO C99 Grammar.
 
-Based on: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf
 """
 
 NAME = "C99"
@@ -13,6 +13,8 @@ START = "Root"
 # unary:
 #  - sizeof ( type-name ) (p90)
 #  - sizeof unary-expr (p90)
+# expressions:
+#  - expression , assignment-expression (p106)
 
 GRAMMAR = {
     "Primary": [
@@ -34,16 +36,14 @@ GRAMMAR = {
         "$"
     ],
     "ArgumentExpressionList": [
-        # TODO: Should be assignment expression (p70)
-        "Expression ArgumentExpressionList_End",
+        "Assignment ArgumentExpressionList_End",
         "$"
     ],
     "ArgumentExpressionList_End": [
-        ", Expression ArgumentExpressionList_End",
+        ", Assignment ArgumentExpressionList_End",
         "$"
     ],
     "Unary": [
-        # TODO: 'sizeof ( type-name )'
         "Postfix",
         "TOK_PLUS_PLUS Unary",
         "TOK_MINUS_MINUS Unary",
@@ -143,11 +143,63 @@ GRAMMAR = {
         "? Expression : Conditional",
         "$"
     ],
+    "Assignment": [
+        "Conditional Assignment_End"
+    ],
+    "Assignment_End": [
+        "= Assignment",
+        "TOK_MUL_ASSIGN Assignment",
+        "TOK_DIV_ASSIGN Assignment",
+        "TOK_MOD_ASSIGN Assignment",
+        "TOK_PLUS_ASSIGN Assignment",
+        "TOK_MINUS_ASSIGN Assignment",
+        "TOK_SHIFT_LEFT_ASSIGN Assignment",
+        "TOK_SHIFT_RIGHT_ASSIGN Assignment",
+        "TOK_AND_ASSIGN Assignment",
+        "TOK_XOR_ASSIGN Assignment",
+        "TOK_OR_ASSIGN Assignment",
+        "$"
+    ],
     "Expression": [
-        # Temporary.
-        "Conditional"
+        
+        "Assignment"
+    ],
+    "Declaration": [
+        "DeclarationSpecifiers InitDeclaratorList",
+    ],
+    "DeclarationSpecifiers": [
+        "TOK_STATIC DeclarationSpecifiers",
+        "TOK_REGISTER DeclarationSpecifiers",
+        "TOK_VOID DeclarationSpecifiers",
+        "TOK_CHAR DeclarationSpecifiers",
+        "TOK_SHORT DeclarationSpecifiers",
+        "TOK_INT DeclarationSpecifiers",
+        "TOK_SIGNED DeclarationSpecifiers",
+        "TOK_UNSIGNED DeclarationSpecifiers",
+        "TOK_CONST DeclarationSpecifiers",
+        "$"
+    ],
+    "InitDeclaratorList": [
+        "InitDeclarator InitDeclaratorList_End"
+    ],
+    "InitDeclaratorList_End": [
+        ", InitDeclarator InitDeclaratorList_End",
+        "$"
+    ],
+    "InitDeclarator": [
+        "Declarator InitDeclarator_End"
+    ],
+    "InitDeclarator_End": [
+        # Todo. Should be '= Initializer (p109)'
+        "= Expression",
+        "$"
+    ],
+    "Declarator": [
+        #TODO P126
+        "TOK_IDENTIFIER"
     ],
     "Root": [
-        "Expression TOK_EOF"
+        "Expression TOK_EOF",
+        "Declaration TOK_EOF"
     ]
 }

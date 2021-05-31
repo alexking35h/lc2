@@ -9,4 +9,4 @@ lockdown of the Covid-19.
 * Written in C++11, keeping the code concise and readable using modern language and STL features.
 * Implement most of the C99 standard
 * Optimising compiler supported by SSA linear IR
-* TDD - including unit tests (using GoogleTest) and functional tests (using PyTest)
+* TDD - unit tests (using GoogleTest) and functional tests (using PyTest)
